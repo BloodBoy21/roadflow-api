@@ -1,0 +1,80 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-py"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Organization {
+  id          BigInt  @id @default(autoincrement())
+  name        String
+  domain      String
+  description String?
+  image       String?
+
+  users        User[]
+  members      Member[]
+  integrations Integration[]
+  agents       Agent[]
+}
+
+model User {
+  id              BigInt       @id @default(autoincrement())
+  first_name      String
+  last_name       String
+  avatar          String?
+  organization_id BigInt
+  organization    Organization @relation(fields: [organization_id], references: [id])
+
+  integrations Integration[]
+  members      Member[]
+}
+
+model Member {
+  id              BigInt  @id @default(autoincrement())
+  organization_id BigInt
+  user_id         BigInt?
+
+  first_name       String
+  last_name        String
+  role             String
+  role_description String?
+  gender           String?
+
+  organization Organization @relation(fields: [organization_id], references: [id])
+  user         User?        @relation(fields: [user_id], references: [id])
+}
+
+model Integration {
+  id              BigInt  @id @default(autoincrement())
+  title           String
+  name            String
+  token           String?
+  organization_id BigInt
+  owner_id        BigInt
+
+  organization Organization @relation(fields: [organization_id], references: [id])
+  owner        User         @relation(fields: [owner_id], references: [id])
+}
+
+model Agent {
+  id              BigInt       @id @default(autoincrement())
+  name            String
+  enabled         Boolean      @default(true)
+  organization_id BigInt
+  organization    Organization @relation(fields: [organization_id], references: [id])
+}
+
+model Platform {
+  id          BigInt  @id @default(autoincrement())
+  name        String
+  description String?
+}

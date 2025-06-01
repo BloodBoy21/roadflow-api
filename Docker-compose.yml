@@ -1,0 +1,100 @@
+services:
+  road-flow:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    volumes:
+      - .:/app
+    ports:
+      - "3000:80"
+    environment:
+      - REDIS_HOST=cache
+      - REDIS_URI=redis://cache:6379
+      - DATABASE_URL=postgresql://nerd:secretPassword@database:5432/main
+      - MONGO_URI=mongodb://nerd:secretPassword@mongo:27017
+      - MONGO_DB=roadflow
+      - PORT=80
+    networks:
+      - local-network
+    depends_on:
+      - cache
+      - database
+    restart: unless-stopped # Automatically restart on failure
+
+  celery-worker:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    command: celery -A celery_worker.celery_app worker --loglevel=info
+    environment:
+      - REDIS_HOST=cache
+      - REDIS_URI=redis://cache:6379
+      - DATABASE_URL=postgresql://nerd:secretPassword@database:5432/main
+      - MONGO_URI=mongodb://nerd:secretPassword@mongo:27017
+      - MONGO_DB=roadflow
+    env_file:
+      - .env
+    networks:
+      - local-network
+    depends_on:
+      - road-flow
+      - cache
+      - database
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: "2"
+          memory: 2G
+
+  cache:
+    image: redis:alpine
+    volumes:
+      - redis_data:/data
+    networks:
+      - local-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 3
+    restart: unless-stopped
+
+  database:
+    image: postgres:17
+    restart: always
+    environment:
+      POSTGRES_PASSWORD: secretPassword
+      POSTGRES_USER: nerd
+      POSTGRES_DB: main
+    networks:
+      - local-network
+    volumes:
+      - database_data:/var/lib/postgresql/data
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+    ports:
+      - "5432:5432"
+    expose:
+      - 5432
+
+  mongo:
+    image: mongo
+    restart: always
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: nerd
+      MONGO_INITDB_ROOT_PASSWORD: secretPassword
+    networks:
+      - local-network
+    volumes:
+      - mongo_data:/data/db
+    ports:
+      - "27017:27017"
+
+volumes:
+  redis_data:
+  database_data:
+  mongo_data:
+
+networks:
+  local-network:
+    driver: bridge

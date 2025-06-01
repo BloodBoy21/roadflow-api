@@ -1,0 +1,23 @@
+[project]
+name = "roadflow-api"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = []
+
+[project.optional-dependencies]
+dev = ["ruff"]
+
+[tool.ruff]
+line-length = 88  # or your preferred length (e.g., 100 or 120)
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["E", "F", "B"]  # pycodestyle, pyflakes, bugbear
+ignore = ["E501"]  # optionally ignore line length errors
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+line-ending = "lf"
