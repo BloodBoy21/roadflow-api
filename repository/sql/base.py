@@ -24,7 +24,7 @@ class SQLRepository(BaseRepository[T]):
         if hasattr(self, "_initialized") and self._initialized:
             return
         self.db = prisma
-        self.collection = getattr(self.db, collection)
+        self.collection = getattr(self.db, collection.lower())
         self.model = model
         self._initialized = True
 
@@ -96,6 +96,11 @@ class SQLRepository(BaseRepository[T]):
     async def count(self, query: Dict = {}) -> int:
         """Count records matching the query."""
         return await self.collection.count(where=query)
+
+    async def exists(self, **kwargs) -> bool:
+        """Check if a record exists matching the given criteria."""
+        data = await self.collection.find_first(where=kwargs)
+        return data is not None
 
     def __parse_to_model(self, data: Any) -> Optional[T]:
         """Convert a database record to a model instance."""

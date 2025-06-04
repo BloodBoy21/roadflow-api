@@ -104,3 +104,21 @@ create table platform (
   name text not null,
   description text
 );
+
+alter table users
+add column email text not null;
+
+alter table users
+add column password text not null;
+
+create table organization_users (
+  id bigint primary key generated always as identity,
+  organization_id bigint references organization (id),
+  user_id bigint references users (id)
+);
+
+alter table users
+drop organization_id;
+
+alter table organization
+add column owner_id bigint references users (id);

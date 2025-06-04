@@ -1,6 +1,6 @@
 import os
 from contextlib import asynccontextmanager
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException, status
 from fastapi.middleware.cors import CORSMiddleware
 from loguru import logger
 
@@ -8,8 +8,12 @@ from lib.mongo import client as mongo_client
 from lib.prisma import prisma
 import redis.asyncio as redis
 from lib.cache import get_cache
-
+from services import user_service
 from fastapi_limiter import FastAPILimiter
+from models.user import UserCreate, UserOut
+from models.response.api import Response, ErrorResponse
+from models.inputs.api import UserLogin
+from typing import Union
 
 from routes.api import api_router
 
@@ -65,6 +69,52 @@ app.include_router(api_router, prefix="/api", tags=["api"])
 @app.get("/")
 async def read_root():
     return {"Hello": "World"}
+
+
+@app.post(
+    "/signup", response_model=Union[Response[UserOut], ErrorResponse], tags=["auth"]
+)
+async def signup(user: UserCreate):
+    """Endpoint to create a new user."""
+    try:
+        created_user = await user_service.create_user(user)
+        return {"data": created_user}
+    except ValueError as e:
+        logger.error(f"Error creating user: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=str(e),
+        ) from e
+    except Exception as e:
+        logger.exception("Unexpected error during user signup")
+        logger.error(f"Unexpected error: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="An unexpected error occurred.",
+        ) from e
+
+
+@app.post(
+    "/login", response_model=Union[Response[UserOut], ErrorResponse], tags=["auth"]
+)
+async def login(user: UserLogin):
+    """Endpoint to log in a user."""
+    try:
+        logged_in_user = await user_service.login_user(user)
+        return {"data": logged_in_user}
+    except ValueError as e:
+        logger.error(f"Error logging in user: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=str(e),
+        ) from e
+    except Exception as e:
+        logger.exception("Unexpected error during user login")
+        logger.error(f"Unexpected error: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="An unexpected error occurred.",
+        ) from e
 
 
 if __name__ == "__main__":

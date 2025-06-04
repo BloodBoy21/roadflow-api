@@ -4,6 +4,7 @@ from .member_repository import MemberRepository
 from .organization_repository import OrganizationRepository
 from .platform_repository import PlatformRepository
 from .user_repository import UserRepository
+from .organization_user_repository import OrganizationUserRepository
 
 
 class Repository:
@@ -14,3 +15,4 @@ class Repository:
         self.organization = OrganizationRepository()
         self.platform = PlatformRepository()
         self.user = UserRepository()
+        self.organization_user = OrganizationUserRepository()

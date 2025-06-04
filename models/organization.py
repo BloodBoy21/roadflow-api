@@ -1,4 +1,4 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from typing import Optional, List
 from .user import UserRead
 from .member import MemberRead
@@ -8,21 +8,23 @@ from .agent import AgentRead
 
 class OrganizationBase(BaseModel):
     name: str
-    domain: str
+    domain: Optional[str] = None
     description: Optional[str] = None
     image: Optional[str] = None
 
 
 class OrganizationCreate(OrganizationBase):
-    pass
+    ownerId: int
 
 
 class OrganizationRead(OrganizationBase):
     id: int
-    users: List[UserRead] = []
-    members: List[MemberRead] = []
-    integrations: List[IntegrationRead] = []
-    agents: List[AgentRead] = []
+    users: Optional[List[UserRead]] = []
+    members: Optional[List[MemberRead]] = []
+    integrations: Optional[List[IntegrationRead]] = []
+    agents: Optional[List[AgentRead]] = []
+    ownerId: Optional[int] = None
+    owner: Optional[UserRead] = None
 
     class Config:
         orm_mode = True
