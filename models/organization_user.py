@@ -5,8 +5,8 @@ from .organization import OrganizationRead
 
 
 class OrganizationUserBase(BaseModel):
-    organization_id: int
-    user_id: int
+    organizationId: int
+    userId: int
 
 
 class OrganizationUserCreate(OrganizationUserBase):
@@ -15,8 +15,8 @@ class OrganizationUserCreate(OrganizationUserBase):
 
 class OrganizationUserRead(OrganizationUserBase):
     id: int
-    organization: Optional[OrganizationRead]
-    user: Optional[UserRead]
+    organization: Optional[OrganizationRead] = None
+    user: Optional[UserRead] = None
 
     class Config:
         orm_mode = True

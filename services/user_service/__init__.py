@@ -41,7 +41,7 @@ async def create_user_org_default(user_name: str, user_id: int) -> OrganizationR
 async def add_user_to_org(user_id: int, org_id: int) -> OrganizationRead:
     """Add user to organization."""
     return await repository.sql.organization_user.add_user(
-        user_id=user_id, org_id=org_id
+        user_id=user_id, organization_id=org_id
     )
 
 
