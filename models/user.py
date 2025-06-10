@@ -41,7 +41,6 @@ class UserCreate(BaseModel):
 class UserOut(BaseModel):
     first_name: str
     last_name: str
-    email: str
     avatar: Optional[str] = None
 
 
@@ -52,4 +51,4 @@ class UserRead(UserBase):
     password: Optional[SecretStr] = None
 
     class Config:
-        orm_mode = True
+        from_attributes = True

@@ -1,6 +1,6 @@
 import os
 from contextlib import asynccontextmanager
-from fastapi import FastAPI, HTTPException, status
+from fastapi import FastAPI, HTTPException, status, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from loguru import logger
 
@@ -10,10 +10,13 @@ import redis.asyncio as redis
 from lib.cache import get_cache
 from services import user_service
 from fastapi_limiter import FastAPILimiter
-from models.user import UserCreate, UserOut
+from models.user import UserCreate
 from models.response.api import Response, ErrorResponse
+from models.response.auth import AuthResponse
 from models.inputs.api import UserLogin
 from typing import Union
+from helpers.auth import create_token
+from fastapi.security import OAuth2PasswordRequestForm
 
 from routes.api import api_router
 
@@ -72,13 +75,21 @@ async def read_root():
 
 
 @app.post(
-    "/signup", response_model=Union[Response[UserOut], ErrorResponse], tags=["auth"]
+    "/signup",
+    response_model=Union[Response[AuthResponse], ErrorResponse],
+    tags=["auth"],
 )
 async def signup(user: UserCreate):
     """Endpoint to create a new user."""
     try:
         created_user = await user_service.create_user(user)
-        return {"data": created_user}
+        token = create_token(user_id=created_user.id)
+        return {
+            "data": {
+                **created_user.model_dump(),
+                "access_token": token,
+            }
+        }
     except ValueError as e:
         logger.error(f"Error creating user: {e}")
         raise HTTPException(
@@ -95,18 +106,49 @@ async def signup(user: UserCreate):
 
 
 @app.post(
-    "/login", response_model=Union[Response[UserOut], ErrorResponse], tags=["auth"]
+    "/auth", response_model=Union[Response[AuthResponse], ErrorResponse], tags=["auth"]
+)
+async def auth(user_data: OAuth2PasswordRequestForm = Depends()):
+    user = await user_service.login_user(
+        UserLogin(
+            email=user_data.username,
+            password=user_data.password,
+        )
+    )
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid credentials",
+            headers={
+                "WWW-Authenticate": "Bearer",
+            },
+        )
+    token = create_token(user.id)
+    return {"access_token": token, "token_type": "bearer"}
+
+
+@app.post(
+    "/login", response_model=Union[Response[AuthResponse], ErrorResponse], tags=["auth"]
 )
 async def login(user: UserLogin):
     """Endpoint to log in a user."""
     try:
         logged_in_user = await user_service.login_user(user)
-        return {"data": logged_in_user}
+        token = create_token(user_id=logged_in_user.id)
+        return {
+            "data": {
+                **logged_in_user.model_dump(),
+                "access_token": token,
+            }
+        }
     except ValueError as e:
         logger.error(f"Error logging in user: {e}")
         raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail=str(e),
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid credentials",
+            headers={
+                "WWW-Authenticate": "Bearer",
+            },
         ) from e
     except Exception as e:
         logger.exception("Unexpected error during user login")

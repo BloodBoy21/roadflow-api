@@ -27,4 +27,4 @@ class OrganizationRead(OrganizationBase):
     owner: Optional[UserRead] = None
 
     class Config:
-        orm_mode = True
+        from_attributes = True

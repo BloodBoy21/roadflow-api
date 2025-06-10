@@ -1,6 +1,7 @@
 from repository import repository
 from models.user import UserCreate, UserRead
 from models.organization import OrganizationRead, OrganizationCreate
+from models.inputs.api import UserLogin
 import bcrypt
 
 
@@ -45,7 +46,7 @@ async def add_user_to_org(user_id: int, org_id: int) -> OrganizationRead:
     )
 
 
-async def login_user(user: UserCreate) -> UserRead:
+async def login_user(user: UserLogin) -> UserRead:
     """Login user and return user details."""
     user_db: UserRead = await repository.sql.user.get_by_email(email=user.email)
     if not user_db:

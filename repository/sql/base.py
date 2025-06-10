@@ -55,6 +55,13 @@ class SQLRepository(BaseRepository[T]):
         data = await self.collection.find_unique(where=query, **options)
         return self.__parse_to_model(data)
 
+    async def get_by_id(
+        self, id: int, options: Dict = {}, key: str = "id"
+    ) -> Optional[T]:
+        """Get a record by its ID."""
+        data = await self.collection.find_unique(where={key: id}, **options)
+        return self.__parse_to_model(data)
+
     async def update(
         self, query: Dict, data: Union[T, Dict], options: Dict = {}
     ) -> Optional[T]:
