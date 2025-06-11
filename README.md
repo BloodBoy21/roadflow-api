@@ -57,29 +57,28 @@ API documentation is available at:
 - Swagger UI: [http://localhost:3000/docs](http://localhost:3000/docs)
 
 ## Project Structure
-
 ```
 roadflow-api/
-??? lib/                        # Shared libraries and connections
-?   ??? cache.py                # Redis cache implementation
-?   ??? celery.py               # Celery configuration
-?   ??? mongo.py                # MongoDB client
-?   ??? prisma.py               # Prisma ORM setup
-??? prisma/                     # Prisma schema and migrations
-?   ??? schema.prisma           # Database schema
-??? routes/                     # API routes
-?   ??? api/
-?       ??? v1/                 # API v1 endpoints
-??? services/                   # Background services
-?   ??? celery_jobs/            # Celery tasks
-?       ??? tasks.py            # Task definitions
-??? .env.example                # Example environment variables
-??? docker-compose.yml          # Docker Compose configuration
-??? Dockerfile                  # Docker configuration
-??? README.md                   # Project documentation
-??? celery_worker.py            # Celery worker entry point
-??? main.py                     # FastAPI application entry point
-??? requirements.txt            # Python dependencies
+├── lib/                        # Shared libraries and connections
+│   ├── cache.py                # Redis cache implementation
+│   ├── celery.py              # Celery configuration
+│   ├── mongo.py               # MongoDB client
+│   └── prisma.py              # Prisma ORM setup
+├── prisma/                     # Prisma schema and migrations
+│   └── schema.prisma          # Database schema
+├── routes/                     # API routes
+│   └── api/
+│       └── v1/                # API v1 endpoints
+├── services/                   # Background services
+│   └── celery_jobs/           # Celery tasks
+│       └── tasks.py           # Task definitions
+├── .env.example                # Example environment variables
+├── docker-compose.yml          # Docker Compose configuration
+├── Dockerfile                  # Docker configuration
+├── README.md                   # Project documentation
+├── celery_worker.py            # Celery worker entry point
+├── main.py                     # FastAPI application entry point
+└── requirements.txt            # Python dependencies
 ```
 
 ## Development
@@ -114,7 +113,7 @@ celery -A celery_worker.celery_app worker --loglevel=info
 ### Running with Docker Compose
 
 ```bash
-docker-compose up -d
+docker compose up -d
 ```
 
 ## Data Model
