@@ -14,6 +14,10 @@ services:
       - MONGO_URI=mongodb://nerd:secretPassword@mongo:27017
       - MONGO_DB=roadflow
       - PORT=80
+      - GOOGLE_API_KEY=my-google-api-key
+      - GOOGLE_GENAI_USE_VERTEXAI=False
+      - SECRET_TOKEN_KEY=my-secret-token-key
+      - WORKER_CONCURRENCY=1
     networks:
       - local-network
     depends_on:
@@ -32,6 +36,9 @@ services:
       - DATABASE_URL=postgresql://nerd:secretPassword@database:5432/main
       - MONGO_URI=mongodb://nerd:secretPassword@mongo:27017
       - MONGO_DB=roadflow
+      - GOOGLE_API_KEY=my-google-api-key
+      - GOOGLE_GENAI_USE_VERTEXAI=False
+      - WORKER_CONCURRENCY=1
     env_file:
       - .env
     networks:
