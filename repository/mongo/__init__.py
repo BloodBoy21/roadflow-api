@@ -5,6 +5,7 @@ from .out_repository import OutDocumentRepository
 from .platform_repository import PlatformRepository
 from .repository_repository import RepositoryRepository
 from .workflow_repository import WorkflowRepository
+from .agent_repository import AgentRepository
 
 
 class Repository:
@@ -16,3 +17,4 @@ class Repository:
         self.platform = PlatformRepository()
         self.repository = RepositoryRepository()
         self.workflow = WorkflowRepository()
+        self.agent = AgentRepository()

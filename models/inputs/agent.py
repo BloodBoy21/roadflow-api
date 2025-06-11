@@ -16,3 +16,9 @@ class ContentConfig(BaseModel):
         default=30,
         description="Limits the number of highest probability vocabulary tokens to consider.",
     )
+
+
+class AgentProcess(BaseModel):
+    org_id: int
+    agent: str = "multi"
+    text: str
