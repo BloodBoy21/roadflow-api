@@ -19,6 +19,5 @@ class ContentConfig(BaseModel):
 
 
 class AgentProcess(BaseModel):
-    org_id: int
     agent: str = "multi"
     text: str

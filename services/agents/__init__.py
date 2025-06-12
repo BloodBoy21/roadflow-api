@@ -41,23 +41,45 @@ class AgentCaller:
 
     @staticmethod
     def create(org_id: int, agent: str):
-        if not agent:
-            raise ValueError("Agent cannot be None or empty")
-        if org_id is None:
-            raise ValueError("org_id cannot be None")
-        available_agents = get_available_agents(Path(__file__).parent)
-        if agent not in available_agents:
-            raise ValueError(
-                f"Agent '{agent}' is not available. Available agents: {available_agents}"
+        agent_instance: LlmAgent = AgentCaller.get_llm_agent(org_id, agent)
+        if not agent_instance:
+            logger.error(f"Agent {agent} not found for org_id {org_id}")
+            return None
+        return AgentCaller(org_id=org_id, agent=agent_instance)
+
+    @staticmethod
+    def get_llm_agent(org_id: int, agent_name: str) -> LlmAgent:
+        """
+        Get an LlmAgent instance by org_id and agent_name.
+        """
+        agent: AgentBase = AgentCaller.get_agent(org_id, agent_name)
+        if not isinstance(agent, AgentBase):
+            raise TypeError(
+                f"Expected an instance of AgentBase, got {type(agent).__name__}"
             )
-        agent_module = importlib.import_module(f"services.agents.{agent}_agent")
-        agent_class: AgentBase = getattr(agent_module, f"{snake_to_camel(agent)}Agent")
+        return agent.build()
+
+    @staticmethod
+    def get_agent(org_id: int, agent_name: str) -> AgentBase:
+        """
+        Get an agent instance by org_id and agent_name.
+        """
+        if not agent_name:
+            raise ValueError("Agent name cannot be None or empty")
+        available_agents = get_available_agents(Path(__file__).parent)
+        if agent_name not in available_agents:
+            raise ValueError(
+                f"Agent '{agent_name}' is not available. Available agents: {available_agents}"
+            )
+        agent_module = importlib.import_module(f"services.agents.{agent_name}_agent")
+        agent_class: AgentBase = getattr(
+            agent_module, f"{snake_to_camel(agent_name)}Agent"
+        )
         if not issubclass(agent_class, AgentBase):
             raise TypeError(
                 f"Agent class {agent_class.__name__} is not a subclass of AgentBase"
             )
-        agent_instance: AgentBase = agent_class(org_id=org_id).build()
-        return AgentCaller(org_id=org_id, agent=agent_instance)
+        return agent_class(org_id=org_id)
 
     def init_runner(self):
         self.runner = Runner(

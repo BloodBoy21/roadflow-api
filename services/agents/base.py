@@ -11,6 +11,7 @@ from datetime import datetime
 from zoneinfo import ZoneInfo
 from models.inputs.agent import ContentConfig
 from repository import repository
+from models.mongo.agents import AgentBase as MongoAgent
 
 DEFAULT_MODEL = os.getenv("DEFAULT_MODEL", "gemini-2.0-flash")
 
@@ -127,12 +128,12 @@ class AgentBase:
         """
         Returns the agent information.
         """
-        if self.agent is None:
-            raise ValueError("Agent is not built yet. Call build() first.")
         return {
-            "name": self.agent.name,
-            "description": self.agent.description,
-            "instructions": self.agent.instruction,
+            "name": self.name,
+            "description": self.description,
+            "instructions": self.instructions,
+            "global_instruction": self.global_instruction,
+            "content_config": self.content_config.model_dump(),
         }
 
     def _get_config(self) -> Dict[str, str]:
@@ -145,6 +146,16 @@ class AgentBase:
             org_id=self.org_id, name=self.name
         )
         if config_agent is None:
+            repository.mongo.agent.create(
+                MongoAgent(
+                    organizationId=self.org_id,
+                    name=self.name,
+                    description=self.description,
+                    instructions=self.instructions,
+                    content_config=self.content_config,
+                    global_instruction=self.global_instruction,
+                )
+            )
             return
         self.instructions = (
             config_agent.instructions

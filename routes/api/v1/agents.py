@@ -2,12 +2,27 @@ from fastapi import APIRouter, Depends, HTTPException
 from models.inputs.agent import AgentProcess
 from services.agents import AgentCaller
 from loguru import logger
+from helpers.auth import user_is_authenticated
+from models.user import UserRead
+from middleware.org_middleware import validate_org_middleware
+from repository import repository
+from models.mongo.agents import AgentOutput, AgentUpdate
+from models.response.api import Response
+from lib.cache import get_cache
+import json
+
+cache = get_cache()
 
 agents_router = APIRouter()
 
+EXP_FIVE_MINUTES = 60 * 5  # Cache expiration time in seconds
 
-@agents_router.post("/process")
-async def process_agent(data: AgentProcess):
+
+@agents_router.post("/{org_id}/process")
+@validate_org_middleware
+async def process_agent(
+    data: AgentProcess, user: UserRead = Depends(user_is_authenticated)
+):
     agent_caller = AgentCaller.create(org_id=data.org_id, agent=data.agent)
     if not agent_caller:
         logger.error(f"Agent {data.agent} not found for org_id {data.org_id}")
@@ -29,3 +44,78 @@ async def process_agent(data: AgentProcess):
             status_code=500,
             detail=f"Error processing agent: {str(e)}",
         ) from e
+
+
+@agents_router.get("/{org_id}/{agent_name}", response_model=Response[AgentOutput])
+@validate_org_middleware
+async def get_agent(
+    org_id: int, agent_name: str, user: UserRead = Depends(user_is_authenticated)
+):
+    agent_name = agent_name.lower().strip()
+    agent_cache_key = f"agent_config_{org_id}_{agent_name}"
+    cached_agent = cache.get(agent_cache_key)
+    if cached_agent:
+        try:
+            logger.info(
+                f"Returning cached agent config for org_id {org_id} and agent_name {agent_name}"
+            )
+            return {
+                "data": json.loads(cached_agent.decode("utf-8")),
+            }
+        except Exception as e:
+            logger.error(
+                f"Error retrieving cached agent config for org_id {org_id} and agent_name {agent_name}: {str(e)}"
+            )
+            cache.delete(agent_cache_key)
+    agent_config = repository.mongo.agent.get_agent_config(
+        org_id=org_id, name=f"{agent_name.capitalize()}Agent"
+    )
+    if agent_config:
+        logger.info(
+            f"Getting agent config for org_id {org_id} and agent_name {agent_name} from MongoDB"
+        )
+        cache.set(
+            agent_cache_key,
+            json.dumps(agent_config.model_dump(), default=str),
+            ex=EXP_FIVE_MINUTES,
+        )
+        return {
+            "data": agent_config,
+        }
+    agent = AgentCaller.get_agent(org_id=org_id, agent_name=agent_name)
+    if not agent:
+        logger.error(f"Agent {agent_name} not found for org_id {org_id}")
+        raise HTTPException(
+            status_code=404,
+            detail=f"Agent {agent_name} not found for org_id {org_id}",
+        )
+    cache.set(
+        agent_cache_key,
+        json.dumps(agent.get_agent_info(), default=str),
+        ex=EXP_FIVE_MINUTES,
+    )
+    return {
+        "data": agent.get_agent_info(),
+    }
+
+
+@agents_router.patch("/{org_id}/{agent_name}", response_model=Response[AgentUpdate])
+@validate_org_middleware
+async def update_agent(
+    org_id: int,
+    agent_name: str,
+    user: UserRead = Depends(user_is_authenticated),
+    update_data: AgentUpdate = None,
+):
+    agent_name = agent_name.lower().strip()
+    agent_name = f"{agent_name.capitalize()}Agent"
+    updated_agent = repository.mongo.agent.update(
+        query={
+            "organizationId": org_id,
+            "name": agent_name,
+        },
+        update_data=update_data,
+    )
+    return {
+        "data": updated_agent,
+    }

@@ -13,5 +13,20 @@ class AgentBase(BaseModel):
     global_instruction: Optional[str] = None
 
 
+class AgentOutput(BaseModel):
+    name: str
+    description: Optional[str] = ""
+    instructions: Optional[str] = ""
+    content_config: Optional[ContentConfig] = ContentConfig()
+    global_instruction: Optional[str] = ""
+
+
+class AgentUpdate(BaseModel):
+    description: Optional[str] = None
+    instructions: Optional[str] = None
+    content_config: Optional[ContentConfig] = None
+    global_instruction: Optional[str] = None
+
+
 class Agent(MongoModel, AgentBase):
     _collection_name = "agents"

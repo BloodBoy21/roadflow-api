@@ -21,3 +21,7 @@ class OrganizationUserRepository(SQLRepository[OrganizationUserRead]):
     ) -> list[OrganizationUserRead]:
         """Get all organizations for a user."""
         return await self.find({"userId": user_id}, {"include": {"organization": True}})
+
+    async def user_in_organization(self, user_id: int, organization_id: int) -> bool:
+        """Check if a user is in an organization."""
+        return await self.exists(userId=user_id, organizationId=organization_id)
