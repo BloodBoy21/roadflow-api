@@ -27,6 +27,7 @@ model Organization {
   members      Member[]
   integrations Integration[]
   agents       Agent[]
+  InputWebhook InputWebhook[]
 }
 
 model User {
@@ -90,4 +91,14 @@ model Platform {
   id          BigInt  @id @default(autoincrement())
   name        String
   description String?
+}
+
+model InputWebhook {
+  id           BigInt       @id @default(autoincrement())
+  name         String
+  type         String
+  key          String       @unique
+  description  String?
+  org_id       BigInt
+  organization Organization @relation(fields: [org_id], references: [id])
 }

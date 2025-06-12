@@ -5,6 +5,7 @@ from .organization_repository import OrganizationRepository
 from .platform_repository import PlatformRepository
 from .user_repository import UserRepository
 from .organization_user_repository import OrganizationUserRepository
+from .input_webhook_repository import InputWebhookRepository
 
 
 class Repository:
@@ -16,3 +17,4 @@ class Repository:
         self.platform = PlatformRepository()
         self.user = UserRepository()
         self.organization_user = OrganizationUserRepository()
+        self.input_webhook = InputWebhookRepository()
