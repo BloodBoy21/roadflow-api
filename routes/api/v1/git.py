@@ -1,6 +1,8 @@
 from fastapi import APIRouter, Depends, HTTPException, Request
 from repository import repository
 from loguru import logger
+from services.workflows import WorkflowService
+from models.mongo.workflow import EventType
 
 git_router = APIRouter()
 
@@ -18,6 +20,10 @@ async def handle_git_webhook(webhook_id: str, request: Request):
             logger.error(f"Webhook with ID {webhook_id} not found.")
             raise HTTPException(status_code=404, detail="Webhook not found.")
         logger.info(f"Webhook {webhook_id} found: {webhook}")
+        workflow_service = WorkflowService(
+            org_id=webhook.org_id, event=EventType.GIT_WEBHOOK.value
+        )
+        workflow_service.run(payload=data)
     except Exception as e:
         logger.error(f"Error processing webhook {webhook_id}: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e)) from e
