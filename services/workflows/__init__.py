@@ -3,7 +3,9 @@ from models.mongo.workflow import Workflow
 from typing import List, Optional, Dict
 from loguru import logger
 from services.agents import AgentCaller
+from models.mongo.logs import LogBase
 import asyncio
+import json
 
 
 class WorkflowService:
@@ -28,16 +30,28 @@ class WorkflowService:
         """
         from services.celery_jobs.tasks import run_workflow
 
+        repository.mongo.logs.create(
+            LogBase(
+                organizationId=self.org_id,
+                type="input",
+                source=self.event,
+                data=payload or {},
+            )
+        )
         workflows = self.get_workflow()
         logger.info(
             f"Running workflows for organization ID {self.org_id} with event {self.event}: {len(workflows)} workflows found."
         )
         for workflow in workflows:
             logger.info(f"Running workflow: {workflow.id}")
-            run_workflow.delay(workflow_id=str(workflow.id), payload=payload)
+            run_workflow.delay(
+                workflow_id=str(workflow.id), payload=payload, source=self.event
+            )
 
     @staticmethod
-    def run_workflow(workflow: Workflow, payload: Dict, context: Dict = {}):
+    def run_workflow(
+        workflow: Workflow, payload: Dict, context: Dict = {}, source: str = ""
+    ):
         """
         Run a specific workflow
         This is a static method to allow running workflows without needing an instance.
@@ -52,7 +66,9 @@ class WorkflowService:
             )
             return
         if workflow.is_task:
-            return WorkflowService.run_task(workflow, payload=payload, context=context)
+            return WorkflowService.run_task(
+                workflow, payload=payload, context=context, source=source
+            )
         agent_caller = AgentCaller.create(
             org_id=workflow.organizationId, agent=workflow.agent
         )
@@ -70,15 +86,24 @@ class WorkflowService:
         ## Workflow Details
         User prompt: {workflow.prompt}
         
-        Context: {context}
+        Context: {json.dumps(context, indent=2)}
         
         Input data to analyze and process:
-        {payload}
+        {json.dumps(payload, indent=2)}
         
         """
 
         res = asyncio.run(agent_caller.generate(text=prompt))
         logger.info(f"Workflow {workflow.id} executed successfully: {res}")
+        repository.mongo.logs.create(
+            LogBase(
+                agent=workflow.agent,
+                data=json.dumps(payload, indent=2) if isinstance(res, dict) else res,
+                organizationId=workflow.organizationId,
+                type="workflow",
+                source=source or "workflow_run",
+            )
+        )
         if not res:
             logger.error(f"Failed to run workflow: {workflow.id}")
             return
@@ -94,12 +119,14 @@ class WorkflowService:
             )
             payload["last_response"] = res
             return WorkflowService.run_workflow(
-                next_workflow, payload=payload, context=context
+                next_workflow, payload=payload, context=context, source=source
             )
         return
 
     @staticmethod
-    def run_task(workflow: Workflow, payload: Dict = {}, context: Dict = {}):
+    def run_task(
+        workflow: Workflow, payload: Dict = {}, context: Dict = {}, source: str = ""
+    ):
         """
         Run a specific workflow task
         This is a static method to allow running tasks without needing an instance.
