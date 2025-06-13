@@ -11,7 +11,13 @@ def hello(self):
 
 
 @celery_app.task(bind=True, name="workflows.run")
-def run_workflow(self, workflow_id: str, payload: Dict = None, source: str = ""):
+def run_workflow(
+    self,
+    workflow_id: str,
+    payload: Dict = None,
+    source: str = "",
+    source_log_id: str = None,
+):
     """
     Run a specific workflow by its ID.
     This is a placeholder for the actual workflow execution logic.
@@ -20,5 +26,7 @@ def run_workflow(self, workflow_id: str, payload: Dict = None, source: str = "")
     if not workflow:
         logger.error(f"Workflow with ID {workflow_id} not found.")
         return
-    WorkflowService.run_workflow(workflow, payload, context={}, source=source)
+    WorkflowService.run_workflow(
+        workflow, payload, context={}, source=source, source_log_id=source_log_id
+    )
     return

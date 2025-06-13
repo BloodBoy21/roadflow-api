@@ -6,6 +6,7 @@ from services.agents import AgentCaller
 from models.mongo.logs import LogBase
 import asyncio
 import json
+from utils.object_id import ObjectId
 
 
 class WorkflowService:
@@ -30,7 +31,7 @@ class WorkflowService:
         """
         from services.celery_jobs.tasks import run_workflow
 
-        repository.mongo.logs.create(
+        log = repository.mongo.logs.create(
             LogBase(
                 organizationId=self.org_id,
                 type="input",
@@ -45,12 +46,19 @@ class WorkflowService:
         for workflow in workflows:
             logger.info(f"Running workflow: {workflow.id}")
             run_workflow.delay(
-                workflow_id=str(workflow.id), payload=payload, source=self.event
+                workflow_id=str(workflow.id),
+                payload=payload,
+                source=self.event,
+                source_log_id=str(log.id),
             )
 
     @staticmethod
     def run_workflow(
-        workflow: Workflow, payload: Dict, context: Dict = {}, source: str = ""
+        workflow: Workflow,
+        payload: Dict,
+        context: Dict = {},
+        source: str = "",
+        source_log_id: Optional[str] = None,
     ):
         """
         Run a specific workflow
@@ -102,6 +110,7 @@ class WorkflowService:
                 organizationId=workflow.organizationId,
                 type="workflow",
                 source=source or "workflow_run",
+                source_id=ObjectId(source_log_id) if source_log_id else None,
             )
         )
         if not res:
@@ -119,13 +128,21 @@ class WorkflowService:
             )
             payload["last_response"] = res
             return WorkflowService.run_workflow(
-                next_workflow, payload=payload, context=context, source=source
+                next_workflow,
+                payload=payload,
+                context=context,
+                source=source,
+                source_log_id=source_log_id,
             )
         return
 
     @staticmethod
     def run_task(
-        workflow: Workflow, payload: Dict = {}, context: Dict = {}, source: str = ""
+        workflow: Workflow,
+        payload: Dict = {},
+        context: Dict = {},
+        source: str = "",
+        source_log_id: Optional[str] = None,
     ):
         """
         Run a specific workflow task
