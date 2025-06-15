@@ -1,7 +1,8 @@
-from pydantic import BaseModel
-from typing import Optional, Dict, Any, List
+from pydantic import BaseModel, Field
+from typing import Optional, Any, List
 from .mongo_base import MongoModel
 from enum import Enum
+from utils.object_id import ObjectId
 
 
 class ParameterType(str, Enum):
@@ -34,6 +35,7 @@ class TaskCreate(TaskBase):
 
 
 class TaskOutput(BaseModel):
+    id: Optional[ObjectId] = Field(default=None, alias="_id")
     title: str
     description: Optional[str] = ""
     parameters: List[Parameter] = []
