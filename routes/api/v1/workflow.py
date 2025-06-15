@@ -106,3 +106,26 @@ async def get_workflows(
         }
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e)) from e
+
+
+@workflow_router.get(
+    "/{org_id}/worflow/{workflow_id}",
+    response_model=Response[List[Workflow]],
+)
+@validate_user_verified_middleware
+@validate_org_middleware
+async def get_workflow_nodes(
+    org_id: int,
+    workflow_id: str,
+    user: UserRead = Depends(user_is_authenticated),
+):
+    try:
+        workflows: List[Workflow] = repository.mongo.workflow.get_workflow_nodes(
+            workflow_id=workflow_id
+        )
+
+        return {
+            "data": workflows,
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e)) from e

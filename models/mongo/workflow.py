@@ -3,6 +3,7 @@ from typing import Optional, List
 from .mongo_base import MongoModel
 from utils.object_id import ObjectId
 from enum import Enum
+from .task import Task
 
 
 class EventType(str, Enum):
@@ -52,3 +53,4 @@ class CreateWorkflowTask(BaseModel):
 
 class Workflow(MongoModel, WorkflowBase, WorkflowTaskBase):
     _collection_name = "workflows"
+    task: Optional[Task] = None
