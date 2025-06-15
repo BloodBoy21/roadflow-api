@@ -7,6 +7,7 @@ from models.mongo.logs import LogBase
 import asyncio
 import json
 from utils.object_id import ObjectId
+from .tasks import run_task
 
 
 class WorkflowService:
@@ -148,4 +149,55 @@ class WorkflowService:
         Run a specific workflow task
         This is a static method to allow running tasks without needing an instance.
         """
+        task_template = repository.mongo.task.find_by_id(workflow.task_template_id)
+        if not task_template:
+            logger.error(
+                f"Task template {workflow.task_template_id} not found for workflow {workflow.id}"
+            )
+            return
+        logger.info(
+            f"Running task {task_template.id} for workflow {workflow.id} with payload: {payload}"
+        )
+        result = run_task(
+            task_name=task_template.function_name,
+            payload=workflow.extra_data or payload,
+            context=context,
+            source=source,
+            source_log_id=source_log_id,
+        )
+        logger.info(
+            f"Task {task_template.id} executed successfully for workflow {workflow.id}"
+        )
+        repository.mongo.logs.create(
+            LogBase(
+                agent=workflow.agent,
+                data=json.dumps(result, indent=2)
+                if isinstance(result, dict)
+                else result,
+                organizationId=workflow.organizationId,
+                type="task",
+                source=source or "task_run",
+                source_id=ObjectId(source_log_id) if source_log_id else None,
+            )
+        )
+        if workflow.next_flow:
+            next_workflow = repository.mongo.workflow.find_by_id(workflow.next_flow)
+            if not context["prev_workflow"]:
+                context["prev_workflow"] = []
+            context["prev_workflow"].append(
+                {
+                    "workflow_id": str(workflow.id),
+                    "result": json.dumps(result, indent=2)
+                    if isinstance(result, dict)
+                    else result,
+                }
+            )
+            payload["last_response"] = result
+            return WorkflowService.run_workflow(
+                next_workflow,
+                payload=payload,
+                context=context,
+                source=source,
+                source_log_id=source_log_id,
+            )
         return

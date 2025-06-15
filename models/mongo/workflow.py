@@ -28,6 +28,7 @@ class WorkflowBase(FlowBase):
 class WorkflowTaskBase(FlowBase):
     task_type: Optional[str] = ""
     extra_data: Optional[dict] = {}
+    task_template_id: Optional[ObjectId] = None
 
 
 class CreateWorkFlow(BaseModel):
@@ -47,7 +48,8 @@ class CreateWorkflowTask(BaseModel):
     is_task: bool = True
     enabled: bool = True
     events: List[EventType] = []
-    extra_data: Optional[dict] = {}
+    parameters: Optional[dict] = {}
+    task_template_id: ObjectId
 
 
 class Workflow(MongoModel, WorkflowBase, WorkflowTaskBase):

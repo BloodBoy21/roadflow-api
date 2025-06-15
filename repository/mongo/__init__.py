@@ -6,6 +6,7 @@ from .platform_repository import PlatformRepository
 from .repository_repository import RepositoryRepository
 from .workflow_repository import WorkflowRepository
 from .agent_repository import AgentRepository
+from .task_repository import TaskRepository
 
 
 class Repository:
@@ -18,3 +19,4 @@ class Repository:
         self.repository = RepositoryRepository()
         self.workflow = WorkflowRepository()
         self.agent = AgentRepository()
+        self.task = TaskRepository()
