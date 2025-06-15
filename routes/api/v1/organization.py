@@ -3,7 +3,10 @@ from models.input_webhook import InputWebhookCreate, InputWebhookRead
 from repository import repository
 from models.response.api import Response
 from helpers.auth import user_is_authenticated
-from middleware.org_middleware import validate_org_middleware
+from middleware.org_middleware import (
+    validate_org_middleware,
+    validate_user_verified_middleware,
+)
 from models.user import UserRead
 from helpers.webhook import generate_webhook_id
 
@@ -13,6 +16,7 @@ organization_router = APIRouter()
 @organization_router.post(
     "/{org_id}/webhook/input", response_model=Response[InputWebhookRead]
 )
+@validate_user_verified_middleware
 @validate_org_middleware
 async def create_webhook_input(
     org_id: int,
@@ -37,6 +41,7 @@ async def create_webhook_input(
     "/{org_id}/webhook/input/{webhook_id}",
     status_code=204,
 )
+@validate_user_verified_middleware
 @validate_org_middleware
 async def delete_webhook_input(
     org_id: int,

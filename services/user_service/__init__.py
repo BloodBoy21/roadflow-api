@@ -3,6 +3,9 @@ from models.user import UserCreate, UserRead
 from models.organization import OrganizationRead, OrganizationCreate
 from models.inputs.api import UserLogin
 import bcrypt
+from templates.email.signup import signup_email
+from services.email import send_email
+from helpers.auth import create_validation_token
 
 
 async def exits_user(email: str) -> bool:
@@ -59,3 +62,27 @@ async def login_user(user: UserLogin) -> UserRead:
         raise ValueError("Invalid password.")
 
     return user_db
+
+
+def send_validation_email(user: UserRead) -> None:
+    """Send validation email to user."""
+    if user.verified:
+        raise ValueError("Email already verified.")
+    validation_token = create_validation_token(user.id)
+    send_email(
+        html=signup_email(name=user.first_name, validation_token=validation_token),
+        subject="Welcome to RoadFlow",
+        to=user.email,
+    )
+
+
+async def verify_user_email(user_id: str) -> UserRead:
+    """Verify user's email."""
+    user: UserRead = await repository.sql.user.get_by_id(id=user_id)
+    if not user:
+        raise ValueError("User not found.")
+
+    if user.verified:
+        raise ValueError("Email already verified.")
+
+    return await repository.sql.user.update_by_id(id=user_id, data={"verified": True})

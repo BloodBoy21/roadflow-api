@@ -11,6 +11,7 @@ class UserBase(BaseModel):
     avatar: Optional[str] = None
     email: str
     password: Optional[str] = None
+    verified: Optional[bool] = False
 
 
 class UserCreate(BaseModel):

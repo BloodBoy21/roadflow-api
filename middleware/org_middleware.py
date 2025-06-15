@@ -36,4 +36,25 @@ async def _validate_org_middleware_(
     return
 
 
+async def _validate_user_confirmed_middleware_(
+    user: UserRead = None,
+    **kwargs,
+):
+    """
+    Middleware for validating if the user is confirmed.
+    """
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Unauthorized",
+        )
+    if not user.verified:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="User is not confirmed",
+        )
+    return
+
+
 validate_org_middleware = Middleware(_validate_org_middleware_)
+validate_user_verified_middleware = Middleware(_validate_user_confirmed_middleware_)

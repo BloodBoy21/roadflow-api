@@ -37,6 +37,7 @@ model User {
   avatar     String?
   email      String
   password   String
+  verified   Boolean @default(false)
 
   // Relations
   organizations OrganizationUser[]

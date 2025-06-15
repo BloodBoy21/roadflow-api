@@ -88,6 +88,7 @@ python-multipart==0.0.20
 pyyaml==6.0.2
 redis==6.2.0
 requests==2.32.3
+resend==2.10.0
 rich==14.0.0
 rich-toolkit==0.14.7
 rsa==4.9.1

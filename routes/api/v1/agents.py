@@ -4,7 +4,10 @@ from services.agents import AgentCaller
 from loguru import logger
 from helpers.auth import user_is_authenticated
 from models.user import UserRead
-from middleware.org_middleware import validate_org_middleware
+from middleware.org_middleware import (
+    validate_org_middleware,
+    validate_user_verified_middleware,
+)
 from repository import repository
 from models.mongo.agents import AgentOutput, AgentUpdate
 from models.response.api import Response
@@ -19,6 +22,7 @@ EXP_FIVE_MINUTES = 60 * 5  # Cache expiration time in seconds
 
 
 @agents_router.post("/{org_id}/process")
+@validate_user_verified_middleware
 @validate_org_middleware
 async def process_agent(
     data: AgentProcess, user: UserRead = Depends(user_is_authenticated)
@@ -47,6 +51,7 @@ async def process_agent(
 
 
 @agents_router.get("/{org_id}/{agent_name}", response_model=Response[AgentOutput])
+@validate_user_verified_middleware
 @validate_org_middleware
 async def get_agent(
     org_id: int, agent_name: str, user: UserRead = Depends(user_is_authenticated)
@@ -100,6 +105,7 @@ async def get_agent(
 
 
 @agents_router.patch("/{org_id}/{agent_name}", response_model=Response[AgentUpdate])
+@validate_user_verified_middleware
 @validate_org_middleware
 async def update_agent(
     org_id: int,

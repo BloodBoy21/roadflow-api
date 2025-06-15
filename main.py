@@ -10,13 +10,14 @@ import redis.asyncio as redis
 from lib.cache import get_cache
 from services import user_service
 from fastapi_limiter import FastAPILimiter
-from models.user import UserCreate
+from models.user import UserCreate, UserRead
 from models.response.api import Response, ErrorResponse
 from models.response.auth import AuthResponse
 from models.inputs.api import UserLogin
 from typing import Union
-from helpers.auth import create_token
+from helpers.auth import create_token, decode_email_token
 from fastapi.security import OAuth2PasswordRequestForm
+from typing import Dict
 
 from routes.api import api_router
 
@@ -124,7 +125,52 @@ async def auth(user_data: OAuth2PasswordRequestForm = Depends()):
             },
         )
     token = create_token(user.id)
+    user_service.send_validation_email(user)
     return {"access_token": token, "token_type": "bearer"}
+
+
+@app.get(
+    "/verify",
+    response_model=Union[Response[AuthResponse], ErrorResponse],
+    tags=["auth"],
+)
+async def verify_email(token: str):
+    """Endpoint to verify a user's email."""
+    try:
+        payload: Dict = decode_email_token(token)
+        if not payload:
+            raise ValueError("Invalid or expired token")
+        user_id = payload.get("user_id")
+        if not user_id:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Invalid or expired token",
+            )
+        user: UserRead = await user_service.verify_user_email(user_id)
+        if not user:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="User not found",
+            )
+        return {
+            "data": {
+                **user.model_dump(),
+                "message": "Email verified successfully",
+            }
+        }
+    except ValueError as e:
+        logger.error(f"Error verifying email: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=str(e),
+        ) from e
+    except Exception as e:
+        logger.exception("Unexpected error during email verification")
+        logger.error(f"Unexpected error: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="An unexpected error occurred.",
+        ) from e
 
 
 @app.post(
