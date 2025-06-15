@@ -50,6 +50,7 @@ class UserRead(UserBase):
     integrations: Optional[List[IntegrationRead]] = []
     members: Optional[List[MemberRead]] = []
     password: Optional[SecretStr] = None
+    is_admin: Optional[bool] = False
 
     class Config:
         from_attributes = True

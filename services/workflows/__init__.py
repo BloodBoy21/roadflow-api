@@ -76,7 +76,7 @@ class WorkflowService:
             return
         if workflow.is_task:
             return WorkflowService.run_task(
-                workflow, payload=payload, context=context, source=source
+                workflow, payload=payload, context=context, source=source,source_log_id=source_log_id
             )
         agent_caller = AgentCaller.create(
             org_id=workflow.organizationId, agent=workflow.agent
@@ -117,9 +117,10 @@ class WorkflowService:
         if not res:
             logger.error(f"Failed to run workflow: {workflow.id}")
             return
+        context["last_response"] = res
         if workflow.next_flow:
             next_workflow = repository.mongo.workflow.find_by_id(workflow.next_flow)
-            if not context["prev_workflow"]:
+            if not context.get("prev_workflow"):
                 context["prev_workflow"] = []
             context["prev_workflow"].append(
                 {
@@ -127,7 +128,6 @@ class WorkflowService:
                     "result": res,
                 }
             )
-            payload["last_response"] = res
             return WorkflowService.run_workflow(
                 next_workflow,
                 payload=payload,
@@ -160,7 +160,7 @@ class WorkflowService:
         )
         result = run_task(
             task_name=task_template.function_name,
-            payload=workflow.extra_data or payload,
+            payload=workflow.parameters or payload,
             context=context,
             source=source,
             source_log_id=source_log_id,
@@ -180,9 +180,10 @@ class WorkflowService:
                 source_id=ObjectId(source_log_id) if source_log_id else None,
             )
         )
+        context["last_response"] = result
         if workflow.next_flow:
             next_workflow = repository.mongo.workflow.find_by_id(workflow.next_flow)
-            if not context["prev_workflow"]:
+            if not context.get("prev_workflow"):
                 context["prev_workflow"] = []
             context["prev_workflow"].append(
                 {
@@ -192,7 +193,6 @@ class WorkflowService:
                     else result,
                 }
             )
-            payload["last_response"] = result
             return WorkflowService.run_workflow(
                 next_workflow,
                 payload=payload,

@@ -26,8 +26,7 @@ class WorkflowBase(FlowBase):
 
 
 class WorkflowTaskBase(FlowBase):
-    task_type: Optional[str] = ""
-    extra_data: Optional[dict] = {}
+    parameters: Optional[dict] = {}
     task_template_id: Optional[ObjectId] = None
 
 
@@ -42,7 +41,6 @@ class CreateWorkFlow(BaseModel):
 
 
 class CreateWorkflowTask(BaseModel):
-    task_type: str
     is_head: bool = False
     next_flow: Optional[ObjectId] = None
     is_task: bool = True

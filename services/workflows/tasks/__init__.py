@@ -1,6 +1,7 @@
 from loguru import logger
 from typing import Dict, Optional
 import importlib
+from pydantic import BaseModel
 
 
 def run_task(
@@ -23,12 +24,15 @@ def run_task(
         return
     try:
         logger.info(f"Running task: {task_name} with payload: {payload}")
-        run_function(
+        res = run_function(
             payload=payload,
             context=context,
             source=source,
             source_log_id=source_log_id,
         )
+        if isinstance(res, BaseModel):
+            return res.model_dump()
+        return res
     except Exception as e:
         logger.error(f"Error running task {task_name}: {e}")
         raise e
