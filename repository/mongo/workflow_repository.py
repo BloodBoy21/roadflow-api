@@ -19,7 +19,6 @@ class WorkflowRepository(MongoRepository[Workflow]):
                     "organizationId": org_id,
                     "is_head": True,
                     "enabled": True,
-                    "events": {"$in": [event] if event else [""]},
                 }
             },
             {
@@ -31,6 +30,8 @@ class WorkflowRepository(MongoRepository[Workflow]):
                 }
             },
         ]
+        if event:
+            pipeline[0]["$match"]["events"] = {"$in": [event]}
         logger.info(pipeline)
         raw_cursor = self.aggregate(pipeline)
         workflows = [self.model(**doc) for doc in raw_cursor]

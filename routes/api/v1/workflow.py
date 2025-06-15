@@ -10,6 +10,7 @@ from repository import repository
 from models.mongo.task import TaskOutput, TaskCreate
 from models.response.api import Response
 from middleware.admin_middleware import validate_user_admin_middleware
+from typing import List
 
 workflow_router = APIRouter()
 
@@ -81,6 +82,27 @@ async def get_all_tasks(
         tasks = repository.mongo.task.get_all_tasks()
         return {
             "data": tasks,
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e)) from e
+
+
+@workflow_router.get(
+    "/{org_id}",
+    response_model=Response[List[Workflow]],
+)
+@validate_user_verified_middleware
+@validate_org_middleware
+async def get_workflows(
+    org_id: int,
+    user: UserRead = Depends(user_is_authenticated),
+):
+    try:
+        workflows: List[Workflow] = (
+            repository.mongo.workflow.get_main_workflows_by_org_id(org_id=org_id)
+        )
+        return {
+            "data": workflows,
         }
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e)) from e
