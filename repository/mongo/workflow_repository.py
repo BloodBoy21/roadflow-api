@@ -2,6 +2,11 @@ from .base import MongoRepository
 from models.mongo.workflow import Workflow
 from loguru import logger
 from utils.object_id import ObjectId
+from lib.cache import get_cache
+
+EXP_CACHE_TIMEOUT = 60 * 60 * 1  # 1 hour``
+
+cache = get_cache()
 
 
 class WorkflowRepository(MongoRepository[Workflow]):
@@ -73,3 +78,44 @@ class WorkflowRepository(MongoRepository[Workflow]):
         raw_cursor = self.aggregate(pipeline)
         workflows = [self.model(**doc) for doc in raw_cursor]
         return workflows
+
+    def get_last_node_id(self, workflow_id: str) -> str | None:
+        """Get the last node of a workflow chain starting at the given workflow ID."""
+        pipeline = [
+            {"$match": {"_id": ObjectId(workflow_id)}},
+            {
+                "$graphLookup": {
+                    "from": "workflows",
+                    "startWith": "$next_flow",
+                    "connectFromField": "next_flow",
+                    "connectToField": "_id",
+                    "as": "linked_nodes",
+                    "depthField": "depth",
+                }
+            },
+            {
+                "$addFields": {
+                    "all_nodes": {"$concatArrays": [["$$ROOT"], "$linked_nodes"]}
+                }
+            },
+            {"$unwind": "$all_nodes"},
+            {"$replaceRoot": {"newRoot": "$all_nodes"}},
+            {
+                "$addFields": {
+                    "sort_depth": {"$ifNull": ["$depth", -1]}  # root gets -1
+                }
+            },
+            {"$sort": {"sort_depth": -1}},  # last node has highest depth
+            {"$limit": 1},
+        ]
+        last_node_cache_key = f"workflow_last_node_{workflow_id}"
+        last_node_id = cache.get(last_node_cache_key)
+        if last_node_id:
+            return ObjectId(last_node_id.decode("utf-8"))
+        raw_cursor = self.aggregate(pipeline)
+        doc = next(raw_cursor, None)
+        if doc:
+            last_node_id = str(doc["_id"])
+            cache.set(last_node_cache_key, last_node_id, timeout=EXP_CACHE_TIMEOUT)
+            return ObjectId(last_node_id)
+        return None

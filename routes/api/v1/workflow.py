@@ -11,7 +11,9 @@ from models.mongo.task import TaskOutput, TaskCreate
 from models.response.api import Response
 from middleware.admin_middleware import validate_user_admin_middleware
 from typing import List
+from lib.cache import get_cache
 
+cache = get_cache()
 workflow_router = APIRouter()
 
 
@@ -21,12 +23,28 @@ workflow_router = APIRouter()
 async def create_workflow(
     org_id: int,
     data: CreateWorkFlow,
+    head_node: str = None,
     user: UserRead = Depends(user_is_authenticated),
 ):
     try:
+        last_node = None
+        if head_node:
+            last_node = repository.mongo.workflow.get_last_node_id(
+                workflow_id=head_node
+            )
+            if not last_node:
+                raise HTTPException(
+                    status_code=status.HTTP_404_NOT_FOUND, detail="Head node not found"
+                )
         workflow = repository.mongo.workflow.create(
-            {**data.model_dump(), "organizationId": org_id, "created_by": user.id}
+            {
+                **data.model_dump(),
+                "organizationId": org_id,
+                "created_by": user.id,
+                "next_flow": last_node,
+            }
         )
+        cache.delete(f"workflow_last_node_{head_node}")
         return {
             "data": workflow,
         }
@@ -40,12 +58,29 @@ async def create_workflow(
 async def create_workflow_task(
     org_id: int,
     data: CreateWorkflowTask,
+    head_node: str = None,
     user: UserRead = Depends(user_is_authenticated),
 ):
     try:
+        last_node = None
+        if head_node:
+            last_node = repository.mongo.workflow.get_last_node_id(
+                workflow_id=head_node
+            )
+            if not last_node:
+                raise HTTPException(
+                    status_code=status.HTTP_404_NOT_FOUND, detail="Head node not found"
+                )
         workflow = repository.mongo.workflow.create(
-            {**data.model_dump(), "organizationId": org_id, "created_by": user.id}
+            {
+                **data.model_dump(),
+                "organizationId": org_id,
+                "created_by": user.id,
+                "next_flow": last_node,
+                "is_task": True,
+            }
         )
+        cache.delete(f"workflow_last_node_{head_node}")
         return {
             "data": workflow,
         }

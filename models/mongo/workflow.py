@@ -34,19 +34,11 @@ class WorkflowTaskBase(FlowBase):
 class CreateWorkFlow(BaseModel):
     prompt: str
     is_head: bool = False
-    next_flow: Optional[ObjectId] = None
-    is_task: bool = False
-    enabled: bool = True
     events: List[EventType] = []
     agent: str
 
 
 class CreateWorkflowTask(BaseModel):
-    is_head: bool = False
-    next_flow: Optional[ObjectId] = None
-    is_task: bool = True
-    enabled: bool = True
-    events: List[EventType] = []
     parameters: Optional[dict] = {}
     task_template_id: ObjectId
 
