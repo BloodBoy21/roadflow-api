@@ -1,4 +1,3 @@
-
 from fastapi import APIRouter, Depends, HTTPException, status
 
 from helpers.auth import user_is_authenticated
@@ -43,6 +42,7 @@ async def create_workflow(
                 "organizationId": org_id,
                 "created_by": user.id,
                 "next_flow": last_node,
+                "enabled": True,
             }
         )
         cache.delete(f"workflow_last_node_{head_node}")
@@ -79,6 +79,7 @@ async def create_workflow_task(
                 "created_by": user.id,
                 "next_flow": last_node,
                 "is_task": True,
+                "enabled": True,
             }
         )
         cache.delete(f"workflow_last_node_{head_node}")
@@ -145,7 +146,7 @@ async def get_workflows(
 
 
 @workflow_router.get(
-    "/{org_id}/worflow/{workflow_id}",
+    "/{org_id}/nodes/{workflow_id}",
     response_model=Response[list[Workflow]],
 )
 @validate_user_verified_middleware

@@ -45,6 +45,6 @@ class CreateWorkflowTask(BaseModel):
     task_template_id: ObjectId
 
 
-class Workflow(MongoModel, WorkflowBase, WorkflowTaskBase):
+class Workflow(MongoModel, WorkflowBase, WorkflowTaskBase, FlowBase):
     _collection_name = "workflows"
     task: Task | None = None
