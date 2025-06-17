@@ -107,7 +107,7 @@ python main.py
 4. **Run the Celery worker (in a separate terminal)**
 
 ```bash
-celery -A celery_worker.celery_app worker --loglevel=info
+uv run celery -A celery_worker.celery_app worker --loglevel=info
 ```
 
 ### Code Quality
