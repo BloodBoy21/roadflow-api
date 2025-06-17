@@ -1,5 +1,6 @@
 
 from fastapi import APIRouter, Depends, HTTPException, status
+from loguru import logger
 
 from helpers.auth import user_is_authenticated
 from helpers.webhook import generate_webhook_id
@@ -8,7 +9,7 @@ from middleware.org_middleware import (
     validate_user_verified_middleware,
 )
 from models.input_webhook import InputWebhookCreate, InputWebhookRead
-from models.organization_user import OrganizationInviteCreate
+from models.invitation import InvitationCreate
 from models.response.api import Response
 from models.user import UserRead
 from repository import repository
@@ -68,7 +69,7 @@ async def delete_webhook_input(
 @validate_org_middleware
 async def invite_user_to_organization(
     org_id: int,
-    data: list[OrganizationInviteCreate],
+    data: list[InvitationCreate],
     user: UserRead = Depends(user_is_authenticated),
 ):
     try:
@@ -76,6 +77,7 @@ async def invite_user_to_organization(
         # For now, we just log it
         await send_invite_to_org(org_id, data)
     except Exception as e:
+        logger.error(e)
         raise HTTPException(status_code=500, detail=str(e)) from e
 
 
@@ -92,4 +94,5 @@ async def validate_invite_token(
         # Validate the invite token and return the invitation details
         await accept_invite(token, user.id)
     except Exception as e:
+        logger.error(e)
         raise HTTPException(status_code=400, detail=str(e)) from e

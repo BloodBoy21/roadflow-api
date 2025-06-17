@@ -117,17 +117,23 @@ This project uses [Ruff](https://docs.astral.sh/ruff/) for linting and code form
 **Available commands:**
 
 ```bash
-# Check for linting issues
-uv run lint
+# Check for linting issues (exits with error code if issues found)
+uv run ruff check .
 
-# Auto-fix linting issues
-uv run lint-fix
+# Auto-fix linting issues (exits with error code if unfixable issues remain)
+uv run ruff check --fix .
+
+# Auto-fix with unsafe fixes (more aggressive)
+uv run ruff check --fix --unsafe-fixes .
 
 # Format code
-uv run format
+uv run ruff format .
 
-# Check if code is properly formatted
-uv run format-check
+# Check if code is properly formatted (exits with error code if not formatted)
+uv run ruff format --check .
+
+# Run both linting and formatting checks (for CI)
+uv run ruff check . && uv run ruff format --check .
 ```
 
 **Ruff configuration:**

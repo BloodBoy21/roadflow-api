@@ -6,12 +6,11 @@ readme = "README.md"
 requires-python = ">=3.12"
 dependencies = []
 
-[project.optional-dependencies]
-dev = ["ruff"]
-
 [tool.ruff]
 line-length = 88
 target-version = "py312"
+# Show all violations as errors (not warnings)
+output-format = "full"
 
 [tool.ruff.lint]
 select = [
@@ -28,6 +27,9 @@ ignore = [
     "E501",  # line too long, handled by formatter
 ]
 
+# All selected rules are treated as errors by default in ruff
+# Use --exit-non-zero-on-fix to ensure CI fails on unfixable issues
+
 [tool.ruff.format]
 quote-style = "double"
 indent-style = "space"
@@ -36,13 +38,8 @@ line-ending = "lf"
 [tool.ruff.lint.isort]
 known-first-party = ["models", "repository", "services", "utils", "routes", "helpers", "middleware"]
 
-[project.scripts]
-lint = "ruff check ."
-lint-fix = "ruff check --fix ."
-format = "ruff format ."
-format-check = "ruff format --check ."
-
-[dependency-groups]
-dev = [
+[tool.uv]
+dev-dependencies = [
     "ruff>=0.11.13",
 ]
+

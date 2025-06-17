@@ -14,14 +14,14 @@ class RoleEnum(str, Enum):
 
 class InvitationBase(BaseModel):
     email: str
-    role: RoleEnum = RoleEnum.MEMBER
+    role: RoleEnum
     organizationId: int
     accepted: bool = False
 
 
 class InvitationCreate(BaseModel):
     email: str
-    role: RoleEnum = RoleEnum.MEMBER
+    role: RoleEnum
 
 
 class InvitationRead(InvitationBase):

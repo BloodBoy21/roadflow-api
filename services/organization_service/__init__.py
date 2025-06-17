@@ -1,12 +1,11 @@
 import os
-from typing import Dict, List
 
 import jwt
+from loguru import logger
 
-from models.invitation import InvitationRead
+from models.invitation import InvitationBase, InvitationCreate, InvitationRead, RoleEnum
 from models.organization import OrganizationRead
 from models.organization_user import (
-    OrganizationInviteCreate,
     OrganizationUserCreate,
     OrganizationUserRead,
 )
@@ -18,7 +17,7 @@ INVITE_SECRET = os.getenv("INVITE_SECRET")
 
 
 async def send_invite_to_org(
-    org_id: int, users: list[OrganizationInviteCreate]
+    org_id: int, users: list[InvitationCreate]
 ) -> OrganizationUserRead:
     """Invite users to an organization."""
     org: OrganizationRead = await repository.sql.organization.get_by_id(org_id)
@@ -26,11 +25,20 @@ async def send_invite_to_org(
         raise ValueError(f"Organization with ID {org_id} does not exist.")
     for user in users:
         # Create an invitation in the database
+        has_existing_invitation = await repository.sql.invitation.get_by_email_and_org(
+            email=user.email, organization_id=org_id
+        )
+        if has_existing_invitation:
+            logger.warning(
+                f"Invitation for {user.email} already exists in organization {org_id}. Skipping."
+            )
+            continue
         invitation = await repository.sql.invitation.create(
-            OrganizationInviteCreate(
+            InvitationBase(
                 email=user.email,
-                org_id=org_id,
-                role=user.role,
+                organizationId=org_id,
+                role=user.role
+                or RoleEnum.MEMBER,  # Default to MEMBER if no role is provided
             )
         )
 
@@ -38,7 +46,7 @@ async def send_invite_to_org(
         token = create_invite_token(invitation)
 
         # Send the invitation email
-        await send_email(
+        send_email(
             html=join_to_org_email(
                 organization_name=org.name,
                 token=token,

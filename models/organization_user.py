@@ -11,9 +11,7 @@ class OrganizationUserBase(BaseModel):
     role: str = "member"
 
 
-class OrganizationInviteCreate(BaseModel):
-    email: str
-    role: str = "member"
+
 
 
 class OrganizationUserCreate(OrganizationUserBase):
