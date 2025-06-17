@@ -1,24 +1,27 @@
-from repository import repository
-from models.mongo.workflow import Workflow
-from typing import List, Optional, Dict
-from loguru import logger
-from services.agents import AgentCaller
-from models.mongo.logs import LogBase
 import asyncio
 import json
+from typing import Dict, List, Optional
+
+from loguru import logger
+
+from models.mongo.logs import LogBase
+from models.mongo.workflow import Workflow
+from repository import repository
+from services.agents import AgentCaller
 from utils.object_id import ObjectId
+
 from .tasks import run_task
 
 
 class WorkflowService:
-    def __init__(self, org_id: Optional[int] = None, event=str):
+    def __init__(self, org_id: int | None = None, event=str):
         """
         Initialize the WorkflowService with an optional organization ID.
         """
         self.org_id = org_id
         self.event = event
 
-    def get_workflow(self) -> List[Workflow]:
+    def get_workflow(self) -> list[Workflow]:
         """
         Get all workflows for a given organization ID.
         """
@@ -26,7 +29,7 @@ class WorkflowService:
             org_id=self.org_id, event=self.event
         )
 
-    def run(self, payload: Dict = None):
+    def run(self, payload: dict = None):
         """
         Run a specific workflow by its ID.
         """
@@ -56,10 +59,10 @@ class WorkflowService:
     @staticmethod
     def run_workflow(
         workflow: Workflow,
-        payload: Dict,
-        context: Dict = {},
+        payload: dict,
+        context: dict = {},
         source: str = "",
-        source_log_id: Optional[str] = None,
+        source_log_id: str | None = None,
     ):
         """
         Run a specific workflow
@@ -76,7 +79,11 @@ class WorkflowService:
             return
         if workflow.is_task:
             return WorkflowService.run_task(
-                workflow, payload=payload, context=context, source=source,source_log_id=source_log_id
+                workflow,
+                payload=payload,
+                context=context,
+                source=source,
+                source_log_id=source_log_id,
             )
         agent_caller = AgentCaller.create(
             org_id=workflow.organizationId, agent=workflow.agent
@@ -140,10 +147,10 @@ class WorkflowService:
     @staticmethod
     def run_task(
         workflow: Workflow,
-        payload: Dict = {},
-        context: Dict = {},
+        payload: dict = {},
+        context: dict = {},
         source: str = "",
-        source_log_id: Optional[str] = None,
+        source_log_id: str | None = None,
     ):
         """
         Run a specific workflow task

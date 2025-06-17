@@ -1,6 +1,8 @@
 # repository/sql_repository.py
-from typing import Union, Dict, List, Type, Optional, Any, TypeVar
+from typing import Any, TypeVar
+
 from pydantic import BaseModel
+
 from lib.prisma import prisma
 from repository.base_repository import BaseRepository
 
@@ -20,7 +22,7 @@ class SQLRepository(BaseRepository[T]):
             cls._instances[key]._initialized = False
         return cls._instances[key]
 
-    def __init__(self, collection: str, model: Type[T]):
+    def __init__(self, collection: str, model: type[T]):
         if hasattr(self, "_initialized") and self._initialized:
             return
         self.db = prisma
@@ -28,7 +30,7 @@ class SQLRepository(BaseRepository[T]):
         self.model = model
         self._initialized = True
 
-    async def create(self, data: Union[T, Dict], options: Dict = {}) -> Optional[T]:
+    async def create(self, data: T | dict, options: dict = {}) -> T | None:
         """Create a new record in the database."""
         if not data:
             return None
@@ -40,31 +42,31 @@ class SQLRepository(BaseRepository[T]):
         record = await self.collection.create(data=data)
         return self.__parse_to_model(record)
 
-    async def find(self, query: Dict = {}, options: Dict = {}) -> List[T]:
+    async def find(self, query: dict = {}, options: dict = {}) -> list[T]:
         """Find records matching the query."""
         data = await self.collection.find_many(where=query, **options)
         return [self.__parse_to_model(d) for d in data]
 
-    async def find_one(self, query: Dict, options: Dict = {}) -> Optional[T]:
+    async def find_one(self, query: dict, options: dict = {}) -> T | None:
         """Find a single record matching the query."""
         data = await self.collection.find_first(where=query, **options)
         return self.__parse_to_model(data)
 
-    async def find_unique(self, query: Dict, options: Dict = {}) -> Optional[T]:
+    async def find_unique(self, query: dict, options: dict = {}) -> T | None:
         """Find a unique record matching the query."""
         data = await self.collection.find_unique(where=query, **options)
         return self.__parse_to_model(data)
 
     async def get_by_id(
-        self, id: int, options: Dict = {}, key: str = "id"
-    ) -> Optional[T]:
+        self, id: int, options: dict = {}, key: str = "id"
+    ) -> T | None:
         """Get a record by its ID."""
         data = await self.collection.find_unique(where={key: id}, **options)
         return self.__parse_to_model(data)
 
     async def update(
-        self, query: Dict, data: Union[T, Dict], options: Dict = {}
-    ) -> Optional[T]:
+        self, query: dict, data: T | dict, options: dict = {}
+    ) -> T | None:
         """Update records matching the query."""
         if not data:
             return None
@@ -78,8 +80,8 @@ class SQLRepository(BaseRepository[T]):
         return self.__parse_to_model(updated)
 
     async def update_by_id(
-        self, id: int, data: Union[T, Dict], options: Dict = {}
-    ) -> Optional[T]:
+        self, id: int, data: T | dict, options: dict = {}
+    ) -> T | None:
         """Update a record by its ID."""
         if not data:
             return None
@@ -92,15 +94,15 @@ class SQLRepository(BaseRepository[T]):
         updated = await self.collection.update(where={"id": id}, data=data)
         return self.__parse_to_model(updated)
 
-    async def delete(self, query: Dict) -> Any:
+    async def delete(self, query: dict) -> Any:
         """Delete a record matching the query."""
         return await self.collection.delete(where=query)
 
-    async def delete_many(self, query: Dict) -> Any:
+    async def delete_many(self, query: dict) -> Any:
         """Delete multiple records matching the query."""
         return await self.collection.delete_many(where=query)
 
-    async def count(self, query: Dict = {}) -> int:
+    async def count(self, query: dict = {}) -> int:
         """Count records matching the query."""
         return await self.collection.count(where=query)
 
@@ -109,7 +111,7 @@ class SQLRepository(BaseRepository[T]):
         data = await self.collection.find_first(where=kwargs)
         return data is not None
 
-    def __parse_to_model(self, data: Any) -> Optional[T]:
+    def __parse_to_model(self, data: Any) -> T | None:
         """Convert a database record to a model instance."""
         if not data:
             return None

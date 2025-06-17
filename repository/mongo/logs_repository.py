@@ -1,5 +1,6 @@
+from models.mongo.logs import Log
+
 from .base import MongoRepository
-from models.mongo.logs import Log, LogBase
 
 
 class LogsRepository(MongoRepository[Log]):

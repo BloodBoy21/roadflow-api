@@ -1,24 +1,25 @@
-from pydantic import BaseModel, Field, model_validator
-from typing import Generic, TypeVar, Any, List, Optional, Union
 import math
+from typing import Any, Generic, TypeVar
+
+from pydantic import BaseModel, Field, model_validator
 
 T = TypeVar("T")
 
 
 class Response(BaseModel, Generic[T]):
     success: bool = Field(default=True)
-    data: Optional[T] = Field(default=None)  # Use Optional for None default
+    data: T | None = Field(default=None)  # Use Optional for None default
 
 
 class ErrorResponse(BaseModel):
     success: bool = Field(default=False)
-    error: Optional[str] = Field(default=None)
-    data: Optional[Any] = Field(default=None)
+    error: str | None = Field(default=None)
+    data: Any | None = Field(default=None)
 
 
 class PaginateResponse(BaseModel, Generic[T]):
     success: bool = Field(default=True)
-    data: Union[List[T], T] = Field(
+    data: list[T] | T = Field(
         default_factory=list
     )  # Use default_factory for mutable types
     pages: int = Field(default=0)
@@ -28,7 +29,7 @@ class PaginateResponse(BaseModel, Generic[T]):
 class PaginateQuery(BaseModel, Generic[T]):
     count: int = Field(default=0)
     pages: int = Field(default=1)
-    data: List[T] = Field(default_factory=list)  # Use default_factory for mutable types
+    data: list[T] = Field(default_factory=list)  # Use default_factory for mutable types
     limit: int = Field(default=10)
 
     @model_validator(mode="before")

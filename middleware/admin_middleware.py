@@ -1,5 +1,6 @@
-from middleware import Middleware
 from fastapi import HTTPException, status
+
+from middleware import Middleware
 from models.user import UserRead
 
 

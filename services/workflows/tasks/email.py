@@ -1,14 +1,15 @@
-from typing import Dict, Optional
-from services.email import send_email
-from models.response.task import TaskResponse
+
 from loguru import logger
+
+from models.response.task import TaskResponse
+from services.email import send_email
 
 
 def run(
-    payload: Dict,
-    context: Dict = {},
+    payload: dict,
+    context: dict = {},
     source: str = "",
-    source_log_id: Optional[str] = None,
+    source_log_id: str | None = None,
     **kwargs,
 ):
     try:

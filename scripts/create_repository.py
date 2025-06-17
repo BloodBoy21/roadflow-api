@@ -2,7 +2,6 @@ import argparse
 from pathlib import Path
 from string import Template
 
-
 MONGO_TEMPLATE = Template('''from .base import MongoRepository
 from models.mongo.${model_snake} import ${model}, ${model}Base
 

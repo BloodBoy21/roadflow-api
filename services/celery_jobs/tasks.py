@@ -1,8 +1,9 @@
+
+from loguru import logger
+
 from lib.celery import celery_app
 from repository import repository
-from loguru import logger
 from services.workflows import WorkflowService
-from typing import Dict
 
 
 @celery_app.task(bind=True, name="agents.hello")
@@ -14,7 +15,7 @@ def hello(self):
 def run_workflow(
     self,
     workflow_id: str,
-    payload: Dict = None,
+    payload: dict = None,
     source: str = "",
     source_log_id: str = None,
 ):

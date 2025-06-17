@@ -1,19 +1,21 @@
-from pydantic import BaseModel
-from typing import Optional, List
 from datetime import datetime
-from .mongo_base import MongoModel
+
+from pydantic import BaseModel
+
 from utils.object_id import ObjectId
+
+from .mongo_base import MongoModel
 
 
 class OutDocumentBase(BaseModel):
-    organizationId: Optional[int]
-    imageUrl: Optional[str]
-    workflow: Optional[ObjectId]
-    text: Optional[str]
-    publish: Optional[bool]
-    platformsIds: Optional[List[int]]
-    tags: Optional[List[str]]
-    createdAt: Optional[datetime]
+    organizationId: int | None
+    imageUrl: str | None
+    workflow: ObjectId | None
+    text: str | None
+    publish: bool | None
+    platformsIds: list[int] | None
+    tags: list[str] | None
+    createdAt: datetime | None
 
 
 class OutDocument(MongoModel, OutDocumentBase):

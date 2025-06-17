@@ -1,5 +1,6 @@
+from models.mongo.repository import Repository
+
 from .base import MongoRepository
-from models.mongo.repository import Repository, RepositoryBase
 
 
 class RepositoryRepository(MongoRepository[Repository]):

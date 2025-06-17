@@ -1,10 +1,12 @@
 # repository/mongo_repository.py
-from typing import Union, Dict, List, Type, Optional, Any, TypeVar
-from pydantic import BaseModel
-from lib.mongo import db
-from utils.object_id import ObjectId
+from typing import Any, TypeVar
+
 from loguru import logger
+from pydantic import BaseModel
+
+from lib.mongo import db
 from repository.base_repository import BaseRepository
+from utils.object_id import ObjectId
 
 T = TypeVar("T", bound=BaseModel)
 
@@ -22,7 +24,7 @@ class MongoRepository(BaseRepository[T]):
             cls._instances[key]._initialized = False
         return cls._instances[key]
 
-    def __init__(self, collection: str, model: Type[T]):
+    def __init__(self, collection: str, model: type[T]):
         if hasattr(self, "_initialized") and self._initialized:
             return
         self.db = db
@@ -31,7 +33,7 @@ class MongoRepository(BaseRepository[T]):
         self.model = model
         self._initialized = True
 
-    def create(self, data: Union[T, Dict], options: Dict = {}) -> Optional[T]:
+    def create(self, data: T | dict, options: dict = {}) -> T | None:
         """Create a new document in the MongoDB collection."""
         if not data:
             return None
@@ -43,13 +45,13 @@ class MongoRepository(BaseRepository[T]):
         inserted = self.collection_db.insert_one(data)
         return self.find_by_id(ObjectId(inserted.inserted_id))
 
-    def find(self, query: Dict, options: Dict = {}) -> List[T]:
+    def find(self, query: dict, options: dict = {}) -> list[T]:
         """Find documents matching the query."""
         cursor = self.collection_db.find(query, options.get("projection", {}))
         cursor = self.apply_actions(cursor, options)
         return [self.__return_model(data) for data in cursor]
 
-    def find_one(self, query: Dict, options: Dict = {}) -> Optional[T]:
+    def find_one(self, query: dict, options: dict = {}) -> T | None:
         """Find a single document matching the query."""
         try:
             return self.__return_model(self.collection_db.find_one(query))
@@ -59,10 +61,10 @@ class MongoRepository(BaseRepository[T]):
 
     def update(
         self,
-        query: Dict,
-        data: Union[T, Dict],
-        options: Dict = {"exclude_none": True},
-    ) -> Optional[T]:
+        query: dict,
+        data: T | dict,
+        options: dict = {"exclude_none": True},
+    ) -> T | None:
         """Update documents matching the query."""
         if not data:
             return None
@@ -84,10 +86,10 @@ class MongoRepository(BaseRepository[T]):
 
     def update_by_id(
         self,
-        id: Union[ObjectId, str],
-        data: Union[T, Dict],
-        options: Dict = {"exclude_none": True},
-    ) -> Optional[T]:
+        id: ObjectId | str,
+        data: T | dict,
+        options: dict = {"exclude_none": True},
+    ) -> T | None:
         """Update a document by its ID."""
         if isinstance(id, str):
             id = ObjectId(id)
@@ -96,37 +98,37 @@ class MongoRepository(BaseRepository[T]):
         self.update({"_id": id}, data, options)
         return self.find_by_id(id)
 
-    def delete(self, query: Dict = {}) -> Any:
+    def delete(self, query: dict = {}) -> Any:
         """Delete a document matching the query."""
         return self.collection_db.delete_one(query)
 
-    def delete_many(self, query: Dict = {}) -> Any:
+    def delete_many(self, query: dict = {}) -> Any:
         """Delete multiple documents matching the query."""
         return self.collection_db.delete_many(query)
 
-    def count(self, query: Dict = {}) -> int:
+    def count(self, query: dict = {}) -> int:
         """Count documents matching the query."""
         return self.collection_db.count_documents(query)
 
-    def find_by_id(self, id: Union[ObjectId, str], options: Dict = {}) -> Optional[T]:
+    def find_by_id(self, id: ObjectId | str, options: dict = {}) -> T | None:
         """Find a document by its ID."""
         if isinstance(id, str):
             id = ObjectId(id)
         return self.__return_model(self.collection_db.find_one({"_id": id}))
 
-    def delete_by_id(self, id: Union[ObjectId, str]) -> Any:
+    def delete_by_id(self, id: ObjectId | str) -> Any:
         """Delete a document by its ID."""
         if isinstance(id, str):
             id = ObjectId(id)
         return self.collection_db.delete_one({"_id": id})
 
-    def apply_actions(self, cursor, options: Dict = {}) -> Any:
+    def apply_actions(self, cursor, options: dict = {}) -> Any:
         """Apply cursor actions based on the options."""
-        for action in options.keys():
+        for action in options:
             cursor = self.cursor_actions(cursor, action, options)
         return cursor
 
-    def cursor_actions(self, cursor, action: str, options: Dict = {}) -> Any:
+    def cursor_actions(self, cursor, action: str, options: dict = {}) -> Any:
         """Apply specific cursor actions."""
         match action:
             case "sort":
@@ -139,15 +141,15 @@ class MongoRepository(BaseRepository[T]):
             case _:
                 return cursor
 
-    def aggregate(self, pipeline: List) -> List:
+    def aggregate(self, pipeline: list) -> list:
         """Perform an aggregation pipeline query."""
         return self.collection_db.aggregate(pipeline)
 
-    def bulk_write(self, operations: List) -> Any:
+    def bulk_write(self, operations: list) -> Any:
         """Perform bulk write operations."""
         return self.collection_db.bulk_write(operations)
 
-    def __return_model(self, data: Dict) -> Optional[T]:
+    def __return_model(self, data: dict) -> T | None:
         """Convert a document to a model instance."""
         if not data:
             return None

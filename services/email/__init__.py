@@ -1,5 +1,6 @@
-import resend
 import os
+
+import resend
 
 DEFAULT_FROM_EMAIL = os.getenv("DEFAULT_FROM_EMAIL")
 

@@ -1,5 +1,6 @@
-from .base import SQLRepository
 from models.agent import AgentRead
+
+from .base import SQLRepository
 
 
 class AgentRepository(SQLRepository[AgentRead]):

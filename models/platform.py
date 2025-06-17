@@ -1,10 +1,10 @@
+
 from pydantic import BaseModel
-from typing import Optional
 
 
 class PlatformBase(BaseModel):
     name: str
-    description: Optional[str] = None
+    description: str | None = None
 
 
 class PlatformCreate(PlatformBase):

@@ -1,5 +1,6 @@
-from .base import SQLRepository
 from models.user import UserRead
+
+from .base import SQLRepository
 
 
 class UserRepository(SQLRepository[UserRead]):

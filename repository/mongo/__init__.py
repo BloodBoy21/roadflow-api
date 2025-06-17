@@ -1,12 +1,12 @@
+from .agent_repository import AgentRepository
 from .changelog_repository import ChangelogRepository
 from .knowledge_repository import KnowledgeRepository
 from .logs_repository import LogsRepository
 from .out_repository import OutDocumentRepository
 from .platform_repository import PlatformRepository
 from .repository_repository import RepositoryRepository
-from .workflow_repository import WorkflowRepository
-from .agent_repository import AgentRepository
 from .task_repository import TaskRepository
+from .workflow_repository import WorkflowRepository
 
 
 class Repository:

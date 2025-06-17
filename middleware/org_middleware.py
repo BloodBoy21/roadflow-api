@@ -1,13 +1,14 @@
-from middleware import Middleware
+
 from fastapi import HTTPException, status
-from repository import repository
-from typing import Optional
+
+from middleware import Middleware
 from models.user import UserRead
+from repository import repository
 
 
 async def _validate_org_middleware_(
-    org_id: Optional[int] = None,
-    orgId: Optional[int] = None,
+    org_id: int | None = None,
+    orgId: int | None = None,
     user: UserRead = None,
     **kwargs,
 ):

@@ -1,17 +1,18 @@
-from pydantic import BaseModel
-from typing import Optional, List
 from datetime import datetime
+
+from pydantic import BaseModel
+
 from .mongo_base import MongoModel
 
 
 class KnowledgeBase(BaseModel):
-    organizationId: Optional[int]
-    text: Optional[str]
-    embeddings: Optional[List[int]]
-    tags: Optional[List[str]]
-    tagsEmbeddings: Optional[List[int]]
-    createdAt: Optional[datetime]
-    updatedAt: Optional[datetime]
+    organizationId: int | None
+    text: str | None
+    embeddings: list[int] | None
+    tags: list[str] | None
+    tagsEmbeddings: list[int] | None
+    createdAt: datetime | None
+    updatedAt: datetime | None
 
 
 class Knowledge(MongoModel, KnowledgeBase):

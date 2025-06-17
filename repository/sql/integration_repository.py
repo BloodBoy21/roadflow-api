@@ -1,5 +1,6 @@
-from .base import SQLRepository
 from models.integration import IntegrationRead
+
+from .base import SQLRepository
 
 
 class IntegrationRepository(SQLRepository[IntegrationRead]):

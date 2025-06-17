@@ -1,5 +1,6 @@
+from models.mongo.platform import Platform
+
 from .base import MongoRepository
-from models.mongo.platform import Platform, PlatformBase
 
 
 class PlatformRepository(MongoRepository[Platform]):

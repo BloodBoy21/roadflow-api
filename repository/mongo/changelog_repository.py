@@ -1,5 +1,6 @@
+from models.mongo.changelog import Changelog
+
 from .base import MongoRepository
-from models.mongo.changelog import Changelog, ChangelogBase
 
 
 class ChangelogRepository(MongoRepository[Changelog]):

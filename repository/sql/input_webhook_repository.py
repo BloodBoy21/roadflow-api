@@ -1,5 +1,6 @@
-from .base import SQLRepository
 from models.input_webhook import InputWebhookRead
+
+from .base import SQLRepository
 
 
 class InputWebhookRepository(SQLRepository[InputWebhookRead]):

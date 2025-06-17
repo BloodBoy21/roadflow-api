@@ -1,8 +1,11 @@
-from pydantic import BaseModel, Field
-from typing import Optional, Any, List
-from .mongo_base import MongoModel
 from enum import Enum
+from typing import Any
+
+from pydantic import BaseModel, Field
+
 from utils.object_id import ObjectId
+
+from .mongo_base import MongoModel
 
 
 class ParameterType(str, Enum):
@@ -17,17 +20,17 @@ class ParameterType(str, Enum):
 class Parameter(BaseModel):
     name: str
     type: ParameterType
-    description: Optional[str] = ""
-    default: Optional[Any] = None
+    description: str | None = ""
+    default: Any | None = None
     required: bool = False
-    options: Optional[List] = None  # For ENUM-like parameters
+    options: list | None = None  # For ENUM-like parameters
 
 
 class TaskBase(BaseModel):
     title: str
     function_name: str
-    description: Optional[str] = ""
-    parameters: List[Parameter] = []
+    description: str | None = ""
+    parameters: list[Parameter] = []
 
 
 class TaskCreate(TaskBase):
@@ -35,10 +38,10 @@ class TaskCreate(TaskBase):
 
 
 class TaskOutput(BaseModel):
-    id: Optional[ObjectId] = Field(default=None, alias="_id")
+    id: ObjectId | None = Field(default=None, alias="_id")
     title: str
-    description: Optional[str] = ""
-    parameters: List[Parameter] = []
+    description: str | None = ""
+    parameters: list[Parameter] = []
 
 
 class Task(MongoModel, TaskBase):

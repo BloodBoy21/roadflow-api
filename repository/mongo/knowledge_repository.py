@@ -1,5 +1,6 @@
+from models.mongo.knowledge import Knowledge
+
 from .base import MongoRepository
-from models.mongo.knowledge import Knowledge, KnowledgeBase
 
 
 class KnowledgeRepository(MongoRepository[Knowledge]):

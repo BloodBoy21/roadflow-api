@@ -1,17 +1,17 @@
-from typing import Dict, List
+import os
+from datetime import datetime
+from zoneinfo import ZoneInfo
+
 from google.adk.agents import LlmAgent
 from google.adk.tools.mcp_tool.mcp_toolset import (
-    MCPToolset,
     SseServerParams,
     StdioServerParameters,
 )
 from google.genai import types
-import os
-from datetime import datetime
-from zoneinfo import ZoneInfo
+
 from models.inputs.agent import ContentConfig
-from repository import repository
 from models.mongo.agents import AgentBase as MongoAgent
+from repository import repository
 
 DEFAULT_MODEL = os.getenv("DEFAULT_MODEL", "gemini-2.0-flash")
 
@@ -20,16 +20,16 @@ class AgentFactory:
     @staticmethod
     def create_agent(
         agent_name: str,
-        tools: List[types.Tool],
+        tools: list[types.Tool],
         server_params: SseServerParams | StdioServerParameters = None,
-        agent_params: Dict[str, str] = None,
+        agent_params: dict[str, str] = None,
         model: str = DEFAULT_MODEL,
         description: str = "An agent that can perform various tasks using tools.",
         content_config: ContentConfig = None,
         output_key: str = None,
         global_instruction: str = None,
         instructions: str = None,
-        sub_agents: List[LlmAgent] = None,
+        sub_agents: list[LlmAgent] = None,
     ) -> LlmAgent:
         """
         Create an LLM agent with the specified parameters.
@@ -85,14 +85,14 @@ class AgentBase:
         name,
         description: str = "",
         org_id: int = None,
-        sub_agents: List[LlmAgent] = None,
+        sub_agents: list[LlmAgent] = None,
         instructions: str = None,
     ):
         self.agent: LlmAgent = None
         self.name: str = name
         self.description: str = description
         self.instructions: str = instructions or ""
-        self.sub_agents: List[LlmAgent] = sub_agents
+        self.sub_agents: list[LlmAgent] = sub_agents
         self.org_id = org_id
         self.content_config: ContentConfig = ContentConfig()
         self.global_instruction: str = None
@@ -118,13 +118,13 @@ class AgentBase:
         return self.agent
 
     @property
-    def build_tools(self) -> List[types.Tool]:
+    def build_tools(self) -> list[types.Tool]:
         """
         Returns the tools available for the agent.
         """
         return []
 
-    def get_agent_info(self) -> Dict[str, str]:
+    def get_agent_info(self) -> dict[str, str]:
         """
         Returns the agent information.
         """
@@ -136,7 +136,7 @@ class AgentBase:
             "content_config": self.content_config.model_dump(),
         }
 
-    def _get_config(self) -> Dict[str, str]:
+    def _get_config(self) -> dict[str, str]:
         """
         Returns the agent configuration.
         """

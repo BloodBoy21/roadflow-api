@@ -1,22 +1,22 @@
-from pydantic import BaseModel, SecretStr, Field, field_validator
-from typing import Optional, List
-from .integration import IntegrationRead
-from .member import MemberRead
 import re
+
+from pydantic import BaseModel, Field, SecretStr, field_validator
+
+from .integration import IntegrationRead
 
 
 class UserBase(BaseModel):
     first_name: str
     last_name: str
-    avatar: Optional[str] = None
+    avatar: str | None = None
     email: str
-    password: Optional[str] = None
-    verified: Optional[bool] = False
+    password: str | None = None
+    verified: bool | None = False
 
 
 class UserCreate(BaseModel):
     first_name: str = Field(..., min_length=1, max_length=50)
-    last_name: Optional[str] = Field(default=None, max_length=50)
+    last_name: str | None = Field(default=None, max_length=50)
     email: str
     password: str = Field(..., min_length=8, max_length=128)
 
@@ -42,15 +42,14 @@ class UserCreate(BaseModel):
 class UserOut(BaseModel):
     first_name: str
     last_name: str
-    avatar: Optional[str] = None
+    avatar: str | None = None
 
 
 class UserRead(UserBase):
     id: int
-    integrations: Optional[List[IntegrationRead]] = []
-    members: Optional[List[MemberRead]] = []
-    password: Optional[SecretStr] = None
-    is_admin: Optional[bool] = False
+    integrations: list[IntegrationRead] | None = []
+    password: SecretStr | None = None
+    is_admin: bool | None = False
 
     class Config:
         from_attributes = True

@@ -1,12 +1,13 @@
-import jwt
-from datetime import datetime, timedelta
 import os
-from loguru import logger
-from fastapi import HTTPException, status, Depends
-from models.user import UserRead as User
-from models.response.auth import UserToken
+from datetime import datetime, timedelta
+
+import jwt
+from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
-from typing import Union
+from loguru import logger
+
+from models.response.auth import UserToken
+from models.user import UserRead as User
 from repository import repository
 
 SECRET_KEY = os.getenv("SECRET_TOKEN_KEY")
@@ -32,14 +33,14 @@ def create_validation_token(user_id: str) -> str:
     )
 
 
-def decode_token(token: str, secret: str = SECRET_KEY) -> Union[UserToken, None]:
+def decode_token(token: str, secret: str = SECRET_KEY) -> UserToken | None:
     try:
         return jwt.decode(token, secret, algorithms=["HS256"])
     except jwt.ExpiredSignatureError:
         return None
 
 
-def decode_email_token(token: str) -> Union[UserToken, None]:
+def decode_email_token(token: str) -> UserToken | None:
     try:
         return jwt.decode(token, SECRET_EMAIL_KEY, algorithms=["HS256"])
     except jwt.ExpiredSignatureError:

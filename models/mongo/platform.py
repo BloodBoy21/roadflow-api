@@ -1,17 +1,19 @@
-from pydantic import BaseModel
-from typing import Optional, Dict, Any
 from datetime import datetime
+from typing import Any
+
+from pydantic import BaseModel
+
 from .mongo_base import MongoModel
 
 
 class PlatformBase(BaseModel):
-    platformId: Optional[int]
-    title: Optional[str]
-    organizationId: Optional[int]
-    configuration: Optional[Dict[str, Any]]
-    enabled: Optional[bool]
-    createdAt: Optional[datetime]
-    updatedAt: Optional[datetime]
+    platformId: int | None
+    title: str | None
+    organizationId: int | None
+    configuration: dict[str, Any] | None
+    enabled: bool | None
+    createdAt: datetime | None
+    updatedAt: datetime | None
 
 
 class Platform(MongoModel, PlatformBase):

@@ -1,16 +1,16 @@
-from pydantic import BaseModel, Field
-from typing import Optional, List
-from .user import UserRead
-from .member import MemberRead
-from .integration import IntegrationRead
+
+from pydantic import BaseModel
+
 from .agent import AgentRead
+from .integration import IntegrationRead
+from .user import UserRead
 
 
 class OrganizationBase(BaseModel):
     name: str
-    domain: Optional[str] = None
-    description: Optional[str] = None
-    image: Optional[str] = None
+    domain: str | None = None
+    description: str | None = None
+    image: str | None = None
 
 
 class OrganizationCreate(OrganizationBase):
@@ -19,12 +19,11 @@ class OrganizationCreate(OrganizationBase):
 
 class OrganizationRead(OrganizationBase):
     id: int
-    users: Optional[List[UserRead]] = []
-    members: Optional[List[MemberRead]] = []
-    integrations: Optional[List[IntegrationRead]] = []
-    agents: Optional[List[AgentRead]] = []
-    ownerId: Optional[int] = None
-    owner: Optional[UserRead] = None
+    users: list[UserRead] | None = []
+    integrations: list[IntegrationRead] | None = []
+    agents: list[AgentRead] | None = []
+    ownerId: int | None = None
+    owner: UserRead | None = None
 
     class Config:
         from_attributes = True

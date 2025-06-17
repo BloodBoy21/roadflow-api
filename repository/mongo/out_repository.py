@@ -1,5 +1,6 @@
+from models.mongo.out_document import OutDocument
+
 from .base import MongoRepository
-from models.mongo.out_document import OutDocument, OutDocumentBase
 
 
 class OutDocumentRepository(MongoRepository[OutDocument]):

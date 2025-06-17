@@ -10,14 +10,39 @@ dependencies = []
 dev = ["ruff"]
 
 [tool.ruff]
-line-length = 88  # or your preferred length (e.g., 100 or 120)
+line-length = 88
 target-version = "py312"
 
 [tool.ruff.lint]
-select = ["E", "F", "B"]  # pycodestyle, pyflakes, bugbear
-ignore = ["E501"]  # optionally ignore line length errors
+select = [
+    "E",   # pycodestyle errors
+    "W",   # pycodestyle warnings
+    "F",   # pyflakes
+    "B",   # flake8-bugbear
+    "C4",  # flake8-comprehensions
+    "UP",  # pyupgrade
+    "I",   # isort
+    "SIM", # flake8-simplify
+]
+ignore = [
+    "E501",  # line too long, handled by formatter
+]
 
 [tool.ruff.format]
 quote-style = "double"
 indent-style = "space"
 line-ending = "lf"
+
+[tool.ruff.lint.isort]
+known-first-party = ["models", "repository", "services", "utils", "routes", "helpers", "middleware"]
+
+[project.scripts]
+lint = "ruff check ."
+lint-fix = "ruff check --fix ."
+format = "ruff format ."
+format-check = "ruff format --check ."
+
+[dependency-groups]
+dev = [
+    "ruff>=0.11.13",
+]

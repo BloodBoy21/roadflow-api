@@ -1,15 +1,16 @@
-from loguru import logger
-from typing import Dict, Optional
 import importlib
+from typing import Dict, Optional
+
+from loguru import logger
 from pydantic import BaseModel
 
 
 def run_task(
     task_name: str,
-    payload: Dict,
-    context: Dict = {},
+    payload: dict,
+    context: dict = {},
     source: str = "",
-    source_log_id: Optional[str] = None,
+    source_log_id: str | None = None,
 ):
     """
     Run a specific task by its name.
@@ -18,7 +19,7 @@ def run_task(
     if not hasattr(module, "run"):
         logger.error(f"Task {task_name} does not have a run function.")
         return
-    run_function = getattr(module, "run")
+    run_function = module.run
     if not callable(run_function):
         logger.error(f"Task {task_name} run is not callable.")
         return

@@ -1,26 +1,24 @@
 import os
 from contextlib import asynccontextmanager
-from fastapi import FastAPI, HTTPException, status, Depends
+from typing import Union
+
+import redis.asyncio as redis
+from fastapi import Depends, FastAPI, HTTPException, status
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.security import OAuth2PasswordRequestForm
+from fastapi_limiter import FastAPILimiter
 from loguru import logger
 
+from helpers.auth import create_token, decode_email_token
+from lib.cache import get_cache
 from lib.mongo import client as mongo_client
 from lib.prisma import prisma
-import redis.asyncio as redis
-from lib.cache import get_cache
-from services import user_service
-from fastapi_limiter import FastAPILimiter
-from models.user import UserCreate, UserRead
-from models.response.api import Response, ErrorResponse
-from models.response.auth import AuthResponse
 from models.inputs.api import UserLogin
-from typing import Union
-from helpers.auth import create_token, decode_email_token
-from fastapi.security import OAuth2PasswordRequestForm
-from typing import Dict
-
+from models.response.api import ErrorResponse, Response
+from models.response.auth import AuthResponse
+from models.user import UserCreate, UserRead
 from routes.api import api_router
-
+from services import user_service
 
 origins = os.getenv("CORS_ORIGINS", "*").split(",")
 print(f"Origins: {origins}")
@@ -137,7 +135,7 @@ async def auth(user_data: OAuth2PasswordRequestForm = Depends()):
 async def verify_email(token: str):
     """Endpoint to verify a user's email."""
     try:
-        payload: Dict = decode_email_token(token)
+        payload: dict = decode_email_token(token)
         if not payload:
             raise ValueError("Invalid or expired token")
         user_id = payload.get("user_id")

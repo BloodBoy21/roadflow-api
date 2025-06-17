@@ -1,17 +1,18 @@
+
 from fastapi import APIRouter, Depends, HTTPException, status
+
 from helpers.auth import user_is_authenticated
+from lib.cache import get_cache
+from middleware.admin_middleware import validate_user_admin_middleware
 from middleware.org_middleware import (
     validate_org_middleware,
     validate_user_verified_middleware,
 )
+from models.mongo.task import TaskCreate, TaskOutput
 from models.mongo.workflow import CreateWorkFlow, CreateWorkflowTask, Workflow
+from models.response.api import Response
 from models.user import UserRead
 from repository import repository
-from models.mongo.task import TaskOutput, TaskCreate
-from models.response.api import Response
-from middleware.admin_middleware import validate_user_admin_middleware
-from typing import List
-from lib.cache import get_cache
 
 cache = get_cache()
 workflow_router = APIRouter()
@@ -124,7 +125,7 @@ async def get_all_tasks(
 
 @workflow_router.get(
     "/{org_id}",
-    response_model=Response[List[Workflow]],
+    response_model=Response[list[Workflow]],
 )
 @validate_user_verified_middleware
 @validate_org_middleware
@@ -133,7 +134,7 @@ async def get_workflows(
     user: UserRead = Depends(user_is_authenticated),
 ):
     try:
-        workflows: List[Workflow] = (
+        workflows: list[Workflow] = (
             repository.mongo.workflow.get_main_workflows_by_org_id(org_id=org_id)
         )
         return {
@@ -145,7 +146,7 @@ async def get_workflows(
 
 @workflow_router.get(
     "/{org_id}/worflow/{workflow_id}",
-    response_model=Response[List[Workflow]],
+    response_model=Response[list[Workflow]],
 )
 @validate_user_verified_middleware
 @validate_org_middleware
@@ -155,7 +156,7 @@ async def get_workflow_nodes(
     user: UserRead = Depends(user_is_authenticated),
 ):
     try:
-        workflows: List[Workflow] = repository.mongo.workflow.get_workflow_nodes(
+        workflows: list[Workflow] = repository.mongo.workflow.get_workflow_nodes(
             workflow_id=workflow_id
         )
 

@@ -1,11 +1,11 @@
+
 from pydantic import BaseModel
-from typing import Optional
 
 
 class IntegrationBase(BaseModel):
     title: str
     name: str
-    token: Optional[str] = None
+    token: str | None = None
     organization_id: int
     owner_id: int
 

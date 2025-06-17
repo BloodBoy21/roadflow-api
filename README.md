@@ -110,6 +110,31 @@ python main.py
 celery -A celery_worker.celery_app worker --loglevel=info
 ```
 
+### Code Quality
+
+This project uses [Ruff](https://docs.astral.sh/ruff/) for linting and code formatting. We use `uv` as the package manager.
+
+**Available commands:**
+
+```bash
+# Check for linting issues
+uv run lint
+
+# Auto-fix linting issues
+uv run lint-fix
+
+# Format code
+uv run format
+
+# Check if code is properly formatted
+uv run format-check
+```
+
+**Ruff configuration:**
+- Line length: 88 characters
+- Target Python version: 3.12
+- Includes rules for: pycodestyle, pyflakes, bugbear, comprehensions, pyupgrade, isort, and simplify
+
 ### Running with Docker Compose
 
 ```bash

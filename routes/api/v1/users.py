@@ -1,10 +1,11 @@
 from fastapi import APIRouter, Depends, HTTPException, status
-import services.user_service.organization as user_org_service
-import services.user_service as user_service
-from models.organization_user import OrganizationUserRead
 from loguru import logger
-from models.user import UserRead
+
+import services.user_service as user_service
+import services.user_service.organization as user_org_service
 from helpers.auth import user_is_authenticated
+from models.organization_user import OrganizationUserRead
+from models.user import UserRead
 
 user_router = APIRouter()
 

@@ -1,14 +1,15 @@
-from pydantic import BaseModel, PrivateAttr, Field
-from typing import Optional
+from datetime import datetime
+
+from pydantic import BaseModel, Field, PrivateAttr
+
 from lib.mongo import db
 from utils.object_id import ObjectId
-from datetime import datetime
 
 
 class MongoModel(BaseModel):
-    id: Optional[ObjectId] = Field(default=None, alias="_id")
-    createdAt: Optional[datetime] = Field(default_factory=datetime.now)
-    updatedAt: Optional[datetime] = Field(default_factory=datetime.now)
+    id: ObjectId | None = Field(default=None, alias="_id")
+    createdAt: datetime | None = Field(default_factory=datetime.now)
+    updatedAt: datetime | None = Field(default_factory=datetime.now)
     _collection_name: str = PrivateAttr()
 
     def __init__(self, **data):

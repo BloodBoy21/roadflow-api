@@ -1,5 +1,6 @@
-from .base import MongoRepository
 from models.mongo.task import Task, TaskBase
+
+from .base import MongoRepository
 
 
 class TaskRepository(MongoRepository[Task]):

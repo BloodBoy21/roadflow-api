@@ -1,25 +1,26 @@
+
 from pydantic import BaseModel
-from typing import Optional
+
 from .organization import OrganizationRead
 
 
 class InputWebhookBase(BaseModel):
     name: str
     key: str
-    description: Optional[str] = None
+    description: str | None = None
     org_id: int
     type: str
 
 
 class InputWebhookCreate(BaseModel):
     name: str
-    description: Optional[str] = None
+    description: str | None = None
     type: str
 
 
 class InputWebhookRead(InputWebhookBase):
     id: int
-    organization: Optional[OrganizationRead] = None
+    organization: OrganizationRead | None = None
 
     class Config:
         from_attributes = True

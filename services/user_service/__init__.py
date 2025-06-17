@@ -1,11 +1,12 @@
-from repository import repository
-from models.user import UserCreate, UserRead
-from models.organization import OrganizationRead, OrganizationCreate
-from models.inputs.api import UserLogin
 import bcrypt
-from templates.email.signup import signup_email
-from services.email import send_email
+
 from helpers.auth import create_validation_token
+from models.inputs.api import UserLogin
+from models.organization import OrganizationCreate, OrganizationRead
+from models.user import UserCreate, UserRead
+from repository import repository
+from services.email import send_email
+from templates.email.signup import signup_email
 
 
 async def exits_user(email: str) -> bool:

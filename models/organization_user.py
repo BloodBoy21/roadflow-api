@@ -1,12 +1,19 @@
+
 from pydantic import BaseModel
-from typing import Optional
-from .user import UserRead
+
 from .organization import OrganizationRead
+from .user import UserRead
 
 
 class OrganizationUserBase(BaseModel):
     organizationId: int
     userId: int
+    role: str = "member"
+
+
+class OrganizationInviteCreate(BaseModel):
+    email: str
+    role: str = "member"
 
 
 class OrganizationUserCreate(OrganizationUserBase):
@@ -15,8 +22,8 @@ class OrganizationUserCreate(OrganizationUserBase):
 
 class OrganizationUserRead(OrganizationUserBase):
     id: int
-    organization: Optional[OrganizationRead] = None
-    user: Optional[UserRead] = None
+    organization: OrganizationRead | None = None
+    user: UserRead | None = None
 
     class Config:
         from_attributes = True

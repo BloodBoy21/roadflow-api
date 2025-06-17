@@ -1,8 +1,10 @@
-from pydantic import BaseModel
-from typing import Optional, List
-from .mongo_base import MongoModel
-from utils.object_id import ObjectId
 from enum import Enum
+
+from pydantic import BaseModel
+
+from utils.object_id import ObjectId
+
+from .mongo_base import MongoModel
 from .task import Task
 
 
@@ -13,36 +15,36 @@ class EventType(str, Enum):
 
 class FlowBase(BaseModel):
     organizationId: int
-    is_head: Optional[bool] = False
-    next_flow: Optional[ObjectId]
-    is_task: Optional[bool] = False
-    enabled: Optional[bool] = True
-    events: List[EventType] = []
-    created_by: Optional[int] = None
+    is_head: bool | None = False
+    next_flow: ObjectId | None
+    is_task: bool | None = False
+    enabled: bool | None = True
+    events: list[EventType] = []
+    created_by: int | None = None
 
 
 class WorkflowBase(FlowBase):
-    agent: Optional[str] = ""
-    prompt: Optional[str] = ""
+    agent: str | None = ""
+    prompt: str | None = ""
 
 
 class WorkflowTaskBase(FlowBase):
-    parameters: Optional[dict] = {}
-    task_template_id: Optional[ObjectId] = None
+    parameters: dict | None = {}
+    task_template_id: ObjectId | None = None
 
 
 class CreateWorkFlow(BaseModel):
     prompt: str
     is_head: bool = False
-    events: List[EventType] = []
+    events: list[EventType] = []
     agent: str
 
 
 class CreateWorkflowTask(BaseModel):
-    parameters: Optional[dict] = {}
+    parameters: dict | None = {}
     task_template_id: ObjectId
 
 
 class Workflow(MongoModel, WorkflowBase, WorkflowTaskBase):
     _collection_name = "workflows"
-    task: Optional[Task] = None
+    task: Task | None = None

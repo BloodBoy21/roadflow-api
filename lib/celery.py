@@ -1,4 +1,5 @@
 import os
+
 from celery import Celery
 
 # Redis URL with fallback to localhost

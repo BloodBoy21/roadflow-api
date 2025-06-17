@@ -1,5 +1,6 @@
-from .base import MongoRepository
 from models.mongo.agents import Agent, AgentBase
+
+from .base import MongoRepository
 
 
 class AgentRepository(MongoRepository[Agent]):

@@ -1,9 +1,6 @@
 from bson.objectid import ObjectId as BsonObjectId
-
-from pydantic_core import core_schema
-
-
 from pydantic.json_schema import JsonSchemaValue
+from pydantic_core import core_schema
 
 
 class ObjectId(BsonObjectId):

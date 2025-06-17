@@ -1,31 +1,33 @@
+
 from pydantic import BaseModel
-from typing import Optional
-from .mongo_base import MongoModel
+
 from models.inputs.agent import ContentConfig
+
+from .mongo_base import MongoModel
 
 
 class AgentBase(BaseModel):
     organizationId: int
     name: str
-    description: Optional[str] = ""
-    instructions: Optional[str] = None
-    content_config: Optional[ContentConfig] = ContentConfig()
-    global_instruction: Optional[str] = None
+    description: str | None = ""
+    instructions: str | None = None
+    content_config: ContentConfig | None = ContentConfig()
+    global_instruction: str | None = None
 
 
 class AgentOutput(BaseModel):
     name: str
-    description: Optional[str] = ""
-    instructions: Optional[str] = ""
-    content_config: Optional[ContentConfig] = ContentConfig()
-    global_instruction: Optional[str] = ""
+    description: str | None = ""
+    instructions: str | None = ""
+    content_config: ContentConfig | None = ContentConfig()
+    global_instruction: str | None = ""
 
 
 class AgentUpdate(BaseModel):
-    description: Optional[str] = None
-    instructions: Optional[str] = None
-    content_config: Optional[ContentConfig] = None
-    global_instruction: Optional[str] = None
+    description: str | None = None
+    instructions: str | None = None
+    content_config: ContentConfig | None = None
+    global_instruction: str | None = None
 
 
 class Agent(MongoModel, AgentBase):

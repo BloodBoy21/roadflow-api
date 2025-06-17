@@ -1,8 +1,9 @@
-from fastapi import APIRouter, Depends, HTTPException, Request
-from repository import repository
+from fastapi import APIRouter, HTTPException, Request
 from loguru import logger
-from services.workflows import WorkflowService
+
 from models.mongo.workflow import EventType
+from repository import repository
+from services.workflows import WorkflowService
 
 git_router = APIRouter()
 
