@@ -7,7 +7,7 @@ Run this script to start a Celery worker:
 
 from dotenv import load_dotenv
 
-from lib.celery import celery_app
+from lib.celery import celery_app  # noqa: F401
 from lib.prisma import prisma
 
 # Load environment variables

@@ -14,4 +14,4 @@ class TaskRepository(MongoRepository[Task]):
         Returns all tasks
         """
         tasks = self.find()
-        return [task for task in tasks]
+        return list(tasks)

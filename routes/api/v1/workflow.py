@@ -7,6 +7,7 @@ from middleware.org_middleware import (
     validate_org_middleware,
     validate_user_verified_middleware,
 )
+from middleware.workflow_middleware import validate_workflow_middleware
 from models.mongo.task import TaskCreate, TaskOutput
 from models.mongo.workflow import CreateWorkFlow, CreateWorkflowTask, Workflow
 from models.response.api import Response
@@ -20,6 +21,7 @@ workflow_router = APIRouter()
 @workflow_router.post("/{org_id}/workflow", response_model=Response[Workflow])
 @validate_user_verified_middleware
 @validate_org_middleware
+@validate_workflow_middleware
 async def create_workflow(
     org_id: int,
     data: CreateWorkFlow,
@@ -56,6 +58,7 @@ async def create_workflow(
 @workflow_router.post("/{org_id}/workflow/task", response_model=Response[Workflow])
 @validate_user_verified_middleware
 @validate_org_middleware
+@validate_workflow_middleware
 async def create_workflow_task(
     org_id: int,
     data: CreateWorkflowTask,
@@ -151,6 +154,7 @@ async def get_workflows(
 )
 @validate_user_verified_middleware
 @validate_org_middleware
+@validate_workflow_middleware
 async def get_workflow_nodes(
     org_id: int,
     workflow_id: str,
@@ -163,6 +167,28 @@ async def get_workflow_nodes(
 
         return {
             "data": workflows,
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e)) from e
+
+
+@workflow_router.patch(
+    "/{org_id}/node/{node_id}",
+    response_model=Response[Workflow],
+)
+@validate_user_verified_middleware
+@validate_org_middleware
+@validate_workflow_middleware
+async def update_workflow_node(
+    org_id: int,
+    node_id: str,
+    data: CreateWorkflowTask | CreateWorkFlow,
+    user: UserRead = Depends(user_is_authenticated),
+):
+    try:
+        workflow = repository.mongo.workflow.update_by_id(id=node_id, data=data)
+        return {
+            "data": workflow,
         }
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e)) from e
