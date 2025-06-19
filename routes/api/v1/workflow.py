@@ -43,10 +43,14 @@ async def create_workflow(
                 "is_head": not bool(head_node),
                 "organizationId": org_id,
                 "created_by": user.id,
-                "next_flow": last_node,
                 "enabled": True,
             }
         )
+        if head_node:
+            repository.mongo.workflow.update_by_id(
+                id=head_node,
+                data={"next_flow": workflow.id},
+            )
         cache.delete(f"workflow_last_node_{head_node}")
         return {
             "data": workflow,
@@ -80,10 +84,13 @@ async def create_workflow_task(
                 **data.model_dump(),
                 "organizationId": org_id,
                 "created_by": user.id,
-                "next_flow": last_node,
                 "is_task": True,
                 "enabled": True,
             }
+        )
+        repository.mongo.workflow.update_by_id(
+            id=head_node,
+            data={"next_flow": workflow.id},
         )
         cache.delete(f"workflow_last_node_{head_node}")
         return {
