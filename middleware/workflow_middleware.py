@@ -8,13 +8,13 @@ async def _validate_workflow_middleware_(
     org_id: int | None = None,
     workflow_id: str | None = None,
     node_id: str | None = None,
-    head_node_id: str | None = None,
+    head_node: str | None = None,
     **kwargs,
 ):
     """
     Middleware for validating workflow access.
     """
-    node_id = node_id or workflow_id or head_node_id
+    node_id = node_id or workflow_id or head_node
     if not node_id:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
