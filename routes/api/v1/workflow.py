@@ -1,3 +1,4 @@
+from urllib import response
 from venv import logger
 from fastapi import APIRouter, Depends, HTTPException, status
 
@@ -203,5 +204,36 @@ async def update_workflow_node(
         return {
             "data": workflow,
         }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e)) from e
+
+
+@workflow_router.delete(
+    "/{org_id}/node/{node_id}",
+    status_code=status.HTTP_204_NO_CONTENT,
+)
+@validate_user_verified_middleware
+@validate_org_middleware
+@validate_workflow_middleware
+async def delete_workflow_node(
+    org_id: int,
+    node_id: str,
+    user: UserRead = Depends(user_is_authenticated),
+):
+    try:
+        [current, before_node, next_node] = (
+            repository.mongo.workflow.get_chains_of_node(node_id=node_id)
+        )
+        if not current:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND, detail="Workflow node not found"
+            )
+        if before_node:
+            repository.mongo.workflow.update_by_id(
+                id=before_node.id,
+                data={"next_flow": next_node.id if next_node else None},
+            )
+        repository.mongo.workflow.delete_by_id(id=node_id)
+        cache.delete(f"workflow_last_node_{node_id}")
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e)) from e

@@ -1,3 +1,4 @@
+from tkinter import N
 from loguru import logger
 
 from lib.cache import get_cache
@@ -121,3 +122,20 @@ class WorkflowRepository(MongoRepository[Workflow]):
             cache.set(last_node_cache_key, last_node_id, ex=EXP_CACHE_TIMEOUT)
             return ObjectId(last_node_id)
         return None
+
+    def get_chains_of_node(self, node_id: str) -> list[Workflow]:
+        """Get all workflows that are linked to a specific node."""
+        current_node = self.find_one({"_id": ObjectId(node_id)})
+        if not current_node:
+            return [
+                None,  # Current node not found
+                None,  # Before node not found
+                None,  # Next node not found
+            ]
+        before_node = self.find_one({"next_flow": ObjectId(node_id)})
+        next_node = self.find_one({"_id": current_node.next_flow})
+        return [
+            current_node,
+            before_node,
+            next_node,
+        ]
