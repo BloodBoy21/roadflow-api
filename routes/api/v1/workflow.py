@@ -21,7 +21,6 @@ workflow_router = APIRouter()
 @workflow_router.post("/{org_id}/workflow", response_model=Response[Workflow])
 @validate_user_verified_middleware
 @validate_org_middleware
-@validate_workflow_middleware
 async def create_workflow(
     org_id: int,
     data: CreateWorkFlow,
@@ -41,6 +40,7 @@ async def create_workflow(
         workflow = repository.mongo.workflow.create(
             {
                 **data.model_dump(),
+                "is_head": not bool(head_node),
                 "organizationId": org_id,
                 "created_by": user.id,
                 "next_flow": last_node,
