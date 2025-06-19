@@ -21,7 +21,6 @@ workflow_router = APIRouter()
 @workflow_router.post("/{org_id}/workflow", response_model=Response[Workflow])
 @validate_user_verified_middleware
 @validate_org_middleware
-@validate_workflow_middleware
 async def create_workflow(
     org_id: int,
     data: CreateWorkFlow,

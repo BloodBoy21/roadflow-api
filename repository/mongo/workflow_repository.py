@@ -118,6 +118,6 @@ class WorkflowRepository(MongoRepository[Workflow]):
         doc = next(raw_cursor, None)
         if doc:
             last_node_id = str(doc["_id"])
-            cache.set(last_node_cache_key, last_node_id, timeout=EXP_CACHE_TIMEOUT)
+            cache.set(last_node_cache_key, last_node_id, ex=EXP_CACHE_TIMEOUT)
             return ObjectId(last_node_id)
         return None
