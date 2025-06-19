@@ -1,3 +1,4 @@
+from venv import logger
 from fastapi import APIRouter, Depends, HTTPException, status
 
 from helpers.auth import user_is_authenticated
@@ -44,6 +45,7 @@ async def create_workflow(
                 "organizationId": org_id,
                 "created_by": user.id,
                 "enabled": True,
+                "next_flow": None,
             }
         )
         if head_node:
@@ -56,6 +58,7 @@ async def create_workflow(
             "data": workflow,
         }
     except Exception as e:
+        logger.error(f"Error creating workflow: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e)) from e
 
 
@@ -86,17 +89,20 @@ async def create_workflow_task(
                 "created_by": user.id,
                 "is_task": True,
                 "enabled": True,
+                "next_flow": None,
             }
         )
-        repository.mongo.workflow.update_by_id(
-            id=head_node,
-            data={"next_flow": workflow.id},
-        )
+        if head_node:
+            repository.mongo.workflow.update_by_id(
+                id=head_node,
+                data={"next_flow": workflow.id},
+            )
         cache.delete(f"workflow_last_node_{head_node}")
         return {
             "data": workflow,
         }
     except Exception as e:
+        logger.error(f"Error creating workflow task: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e)) from e
 
 

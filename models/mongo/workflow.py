@@ -16,7 +16,7 @@ class EventType(str, Enum):
 class FlowBase(BaseModel):
     organizationId: int
     is_head: bool | None = False
-    next_flow: ObjectId | None
+    next_flow: ObjectId | None = None
     is_task: bool | None = False
     enabled: bool | None = True
     events: list[EventType] = []
