@@ -38,7 +38,7 @@ class TaskCreate(TaskBase):
 
 
 class TaskOutput(BaseModel):
-    id: ObjectId | None = Field(default=None, alias="_id")
+    id: ObjectId
     title: str
     description: str | None = ""
     parameters: list[Parameter] = []

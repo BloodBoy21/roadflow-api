@@ -13,5 +13,5 @@ class TaskRepository(MongoRepository[Task]):
         """
         Returns all tasks
         """
-        tasks = self.find()
+        tasks = self.find(query={})
         return list(tasks)
