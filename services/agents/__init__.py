@@ -15,7 +15,7 @@ from .helpers.common import snake_to_camel
 APP_NAME = os.getenv("APP_NAME", "roadflow")
 
 
-def get_available_agents(folder: Path, exclude: str = "") -> list[str]:
+def get_available_agents(folder: Path = "", exclude: str = "") -> list[str]:
     """
     Return a list of available agent names (without `_agent.py` suffix) from a folder.
 
@@ -26,6 +26,8 @@ def get_available_agents(folder: Path, exclude: str = "") -> list[str]:
     Returns:
         list[str]: List of agent names (without file extension).
     """
+    if not folder:
+        folder = Path(__file__).parent
     return [
         f.stem.replace("_agent", "")
         for f in folder.glob("*_agent.py")
@@ -68,7 +70,8 @@ class AgentCaller:
         """
         if not agent_name:
             raise ValueError("Agent name cannot be None or empty")
-        available_agents = get_available_agents(Path(__file__).parent)
+        agent_name = agent_name.lower()
+        available_agents = get_available_agents()
         if agent_name not in available_agents:
             raise ValueError(
                 f"Agent '{agent_name}' is not available. Available agents: {available_agents}"

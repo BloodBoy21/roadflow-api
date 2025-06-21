@@ -14,13 +14,24 @@ from models.mongo.agents import AgentOutput, AgentUpdate
 from models.response.api import Response
 from models.user import UserRead
 from repository import repository
-from services.agents import AgentCaller
+from services.agents import AgentCaller, get_available_agents
+
 
 cache = get_cache()
 
 agents_router = APIRouter()
 
 EXP_FIVE_MINUTES = 60 * 5  # Cache expiration time in seconds
+
+
+@agents_router.get("/{org_id}/all", response_model=Response[list[str]])
+@validate_user_verified_middleware
+@validate_org_middleware
+async def list_agents(org_id: int, user: UserRead = Depends(user_is_authenticated)):
+    agents = get_available_agents(exclude="multi_agent")
+    return {
+        "data": agents,
+    }
 
 
 @agents_router.post("/{org_id}/process")
