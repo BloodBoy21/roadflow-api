@@ -19,18 +19,18 @@ docs_router = APIRouter()
 async def get_docs(org_id: int, section: str,page:int=1,limit:int=20, user: UserRead = Depends(user_is_authenticated)):
     agent = ""
     match section:
-      case "engineering":
-        agent = "EngineerAgent"
-      case "product":
-        agent = "ProductAgent"
-      case "operations":
-        agent = "OperationsAgent"
-      case "customer_success":
-        agent = "CustomerSuccessAgent"
-      case "growth":
-        agent = "GrowthAgent"
-      case _:
-        agent = "default"
+        case "engineering":
+            agent = "EngineerAgent"
+        case "product":
+            agent = "ProductAgent"
+        case "operations":
+            agent = "OperationsAgent"
+        case "customer_success":
+            agent = "CustomerAgent"
+        case "growth":
+            agent = "GrowthAgent"
+        case _:
+            agent = "default"
     docs,pages, total = repository.mongo.out_document.get_by_section(
         org_id=org_id, agent=agent, page=page, limit=limit
     )
