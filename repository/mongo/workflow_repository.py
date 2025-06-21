@@ -1,4 +1,3 @@
-from tkinter import N
 from loguru import logger
 
 from lib.cache import get_cache

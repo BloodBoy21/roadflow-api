@@ -1,5 +1,5 @@
-from urllib import response
 from venv import logger
+
 from fastapi import APIRouter, Depends, HTTPException, status
 
 from helpers.auth import user_is_authenticated
