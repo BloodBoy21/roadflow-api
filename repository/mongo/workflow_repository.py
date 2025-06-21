@@ -138,3 +138,41 @@ class WorkflowRepository(MongoRepository[Workflow]):
             before_node,
             next_node,
         ]
+
+    def delete_workflow(self, workflow_id: str) -> None:
+        """Delete a workflow by its ID."""
+        pipeline = pipeline = [
+            {"$match": {"_id": ObjectId(workflow_id)}},
+            {
+                "$graphLookup": {
+                    "from": "workflows",
+                    "startWith": "$next_flow",
+                    "connectFromField": "next_flow",
+                    "connectToField": "_id",
+                    "as": "linked_nodes",
+                    "depthField": "depth",
+                }
+            },
+            {
+                "$addFields": {
+                    "all_nodes": {"$concatArrays": [["$$ROOT"], "$linked_nodes"]}
+                }
+            },
+            {"$unwind": "$all_nodes"},
+            {"$replaceRoot": {"newRoot": "$all_nodes"}},
+            {"$sort": {"depth": 1}},
+            {
+                "$lookup": {
+                    "from": "tasks",
+                    "localField": "task_template_id",
+                    "foreignField": "_id",
+                    "as": "task",
+                }
+            },
+            {"$unwind": {"path": "$task", "preserveNullAndEmptyArrays": True}},
+        ]
+        raw_cursor = self.aggregate(pipeline)
+        workflows_ids = [doc["_id"] for doc in raw_cursor]
+        if not workflows_ids:
+            return
+        self.delete_many({"_id": {"$in": workflows_ids}})
