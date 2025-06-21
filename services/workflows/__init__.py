@@ -162,9 +162,7 @@ class WorkflowService:
                 f"Task template {workflow.task_template_id} not found for workflow {workflow.id}"
             )
             return
-        logger.info(
-            f"Running task {task_template.id} for workflow {workflow.id} with payload: {payload}"
-        )
+        logger.info(f"Running task {task_template.id} for workflow {workflow.id}")
         result = run_task(
             task_name=task_template.function_name,
             payload=workflow.parameters or payload,

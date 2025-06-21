@@ -24,7 +24,7 @@ def run_task(
         logger.error(f"Task {task_name} run is not callable.")
         return
     try:
-        logger.info(f"Running task: {task_name} with payload: {payload}")
+        logger.info(f"Running task: {task_name}")
         res = run_function(
             payload=payload,
             context=context,

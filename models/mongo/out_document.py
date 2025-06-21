@@ -1,5 +1,3 @@
-from datetime import datetime
-
 from pydantic import BaseModel
 
 from utils.object_id import ObjectId
@@ -15,7 +13,7 @@ class OutDocumentBase(BaseModel):
     publish: bool | None
     platformsIds: list[int] | None
     tags: list[str] | None
-    createdAt: datetime | None
+    agent: str | None
 
 
 class OutDocument(MongoModel, OutDocumentBase):

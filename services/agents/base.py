@@ -8,10 +8,13 @@ from google.adk.tools.mcp_tool.mcp_toolset import (
     StdioServerParameters,
 )
 from google.genai import types
+from loguru import logger
 
 from models.inputs.agent import ContentConfig
 from models.mongo.agents import AgentBase as MongoAgent
 from repository import repository
+
+from .tools import out_docs
 
 DEFAULT_MODEL = os.getenv("DEFAULT_MODEL", "gemini-2.0-flash")
 
@@ -63,8 +66,8 @@ class AgentFactory:
         return f"""
         ## Internal utils
         Today is: {today} (America/Mexico_City timezone)
-        
         ## Global Instruction
+        - You have a tool named `save_out_doc` that allows you to save relevant text responses as documents in MongoDB, you must use it to save relevant information.
         {custom_prompt}
       """
 
@@ -96,6 +99,7 @@ class AgentBase:
         self.org_id = org_id
         self.content_config: ContentConfig = ContentConfig()
         self.global_instruction: str = None
+        self.tools = []
         self._get_config()
 
     def build(self):
@@ -122,7 +126,27 @@ class AgentBase:
         """
         Returns the tools available for the agent.
         """
-        return []
+        self.tools.append(
+            {
+                "build": True,
+                "callback": out_docs.save_out_doc,
+            }
+        )
+        tools = []
+        context = {"org_id": self.org_id, "agent_name": self.name}
+        for tool in self.tools:
+            if isinstance(tool, dict) and "build" in tool and tool["build"]:
+                tool_instance = tool["callback"]
+                logger.info(f"Building tool: {tool_instance.__name__}")
+                tool_instance = tool_instance(context=context)
+                if callable(tool_instance):
+                    logger.info(f"Tool {tool_instance.__name__} built successfully.")
+                    self.tools.append(tool_instance)
+                else:
+                    raise TypeError(f"Tool {tool['callback']} must return a callable.")
+                continue
+            tools.append(tool)
+        return tools
 
     def get_agent_info(self) -> dict[str, str]:
         """
