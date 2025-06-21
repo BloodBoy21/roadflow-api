@@ -22,5 +22,3 @@ class InputWebhookRead(InputWebhookBase):
     id: int
     organization: OrganizationRead | None = None
 
-    class Config:
-        from_attributes = True

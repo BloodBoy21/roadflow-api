@@ -22,6 +22,3 @@ class OrganizationUserRead(OrganizationUserBase):
     id: int
     organization: OrganizationRead | None = None
     user: UserRead | None = None
-
-    class Config:
-        from_attributes = True

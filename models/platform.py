@@ -14,5 +14,3 @@ class PlatformCreate(PlatformBase):
 class PlatformRead(PlatformBase):
     id: int
 
-    class Config:
-        from_attributes = True

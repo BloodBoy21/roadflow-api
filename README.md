@@ -188,6 +188,40 @@ uv run ruff check . && uv run ruff format --check .
 docker compose up -d
 ```
 
+### Testing
+
+The project includes comprehensive unit tests for all services using pytest.
+
+**Running tests:**
+
+```bash
+# Run all tests
+uv run pytest
+
+# Run tests with verbose output
+uv run pytest -v
+
+# Run tests with coverage report
+uv run pytest --cov=services --cov-report=term-missing
+
+# Run specific test categories
+python tests/test_runner.py --agents      # Agent tests only
+python tests/test_runner.py --workflows   # Workflow tests only
+python tests/test_runner.py --services    # All service tests
+
+# Run specific test file
+uv run pytest tests/services/agents/test_changelog_tool.py
+
+# Run tests with coverage using the test runner
+python tests/test_runner.py --coverage
+```
+
+**Test structure:**
+- `tests/services/agents/` - Tests for AI agent system
+- `tests/services/workflows/` - Tests for workflow services
+- `tests/services/user_service/` - Tests for user services
+- `tests/conftest.py` - Shared test fixtures and configuration
+
 ## AI Agent System
 
 RoadFlow includes a comprehensive AI agent system designed to handle various business functions through specialized agents:

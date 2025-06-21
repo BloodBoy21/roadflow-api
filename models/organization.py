@@ -25,5 +25,3 @@ class OrganizationRead(OrganizationBase):
     ownerId: int | None = None
     owner: UserRead | None = None
 
-    class Config:
-        from_attributes = True

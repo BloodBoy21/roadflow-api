@@ -10,3 +10,21 @@ class GrowthAgent(AgentBase):
             instructions="You are a growth agent. Use your tools to solve growth and marketing problems efficiently. You should manage marketing campaigns, user acquisition strategies, conversion optimization, market analysis, growth metrics tracking, and growth documentation for the organization.",
             org_id=org_id,
         )
+        self.tools = [
+            {
+                "build": True,
+                "callback": changelog.save_changelog,
+            },
+            {
+                "build": True,
+                "callback": changelog.get_changelog,
+            },
+            {
+                "build": True,
+                "callback": changelog.delete_changelog,
+            },
+            {
+                "build": True,
+                "callback": changelog.sort_changelog,
+            },
+        ]

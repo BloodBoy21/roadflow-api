@@ -10,3 +10,21 @@ class OperationsAgent(AgentBase):
             instructions="You are an operations agent. Use your tools to solve operational problems efficiently. You should manage system monitoring, process optimization, resource allocation, incident response, and operational documentation for the organization.",
             org_id=org_id,
         )
+        self.tools = [
+            {
+                "build": True,
+                "callback": changelog.save_changelog,
+            },
+            {
+                "build": True,
+                "callback": changelog.get_changelog,
+            },
+            {
+                "build": True,
+                "callback": changelog.delete_changelog,
+            },
+            {
+                "build": True,
+                "callback": changelog.sort_changelog,
+            },
+        ]

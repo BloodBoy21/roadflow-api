@@ -30,5 +30,4 @@ class InvitationRead(InvitationBase):
     expiresAt: datetime
     organization: OrganizationRead | None = None
 
-    class Config:
-        from_attributes = True
+

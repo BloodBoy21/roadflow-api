@@ -14,5 +14,3 @@ class AgentCreate(AgentBase):
 class AgentRead(AgentBase):
     id: int
 
-    class Config:
-        from_attributes = True

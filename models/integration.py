@@ -17,5 +17,4 @@ class IntegrationCreate(IntegrationBase):
 class IntegrationRead(IntegrationBase):
     id: int
 
-    class Config:
-        from_attributes = True
+

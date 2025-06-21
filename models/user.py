@@ -50,6 +50,3 @@ class UserRead(UserBase):
     integrations: list[IntegrationRead] | None = []
     password: SecretStr | None = None
     is_admin: bool | None = False
-
-    class Config:
-        from_attributes = True
