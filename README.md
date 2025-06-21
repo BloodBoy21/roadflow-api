@@ -10,6 +10,10 @@ A FastAPI-based backend system for managing organizations, users, and workflow a
 - Redis caching
 - Docker Compose setup for local development
 - Versioned API structure
+- AI Agent system with specialized agents for different business functions
+- Workflow automation and task management
+- Organization and user management
+- Integration support for external services
 
 ## Tech Stack
 
@@ -59,25 +63,62 @@ API documentation is available at:
 ## Project Structure
 ```
 roadflow-api/
+├── helpers/                    # Helper utilities
+│   ├── auth.py                # Authentication helpers
+│   └── webhook.py             # Webhook utilities
 ├── lib/                        # Shared libraries and connections
 │   ├── cache.py                # Redis cache implementation
 │   ├── celery.py              # Celery configuration
 │   ├── mongo.py               # MongoDB client
 │   └── prisma.py              # Prisma ORM setup
+├── middleware/                 # FastAPI middleware
+│   ├── admin_middleware.py    # Admin access control
+│   ├── org_middleware.py      # Organization context
+│   └── workflow_middleware.py # Workflow processing
+├── models/                     # Data models
+│   ├── inputs/                # Input validation models
+│   ├── mongo/                 # MongoDB document models
+│   └── response/              # API response models
 ├── prisma/                     # Prisma schema and migrations
+│   ├── migrations/            # Database migrations
 │   └── schema.prisma          # Database schema
+├── repository/                 # Data access layer
+│   ├── mongo/                 # MongoDB repositories
+│   └── sql/                   # SQL database repositories
 ├── routes/                     # API routes
 │   └── api/
 │       └── v1/                # API v1 endpoints
-├── services/                   # Background services
-│   └── celery_jobs/           # Celery tasks
-│       └── tasks.py           # Task definitions
-├── .env.example                # Example environment variables
+│           ├── agents.py      # Agent management
+│           ├── changelog.py   # Changelog operations
+│           ├── docs.py        # Documentation
+│           ├── organization.py # Organization management
+│           ├── users.py       # User management
+│           └── workflow.py    # Workflow operations
+├── services/                   # Business logic services
+│   ├── agents/                # AI Agent system
+│   │   ├── base.py           # Base agent class
+│   │   ├── customer_agent.py # Customer service agent
+│   │   ├── engineer_agent.py # Engineering agent
+│   │   ├── growth_agent.py   # Growth & marketing agent
+│   │   ├── operations_agent.py # Operations agent
+│   │   ├── product_agent.py  # Product management agent
+│   │   ├── multi_agent.py    # Multi-agent coordination
+│   │   ├── helpers/          # Agent utilities
+│   │   └── tools/            # Agent tools
+│   │       ├── changelog.py  # Changelog management
+│   │       └── out_docs.py   # Document output
+│   ├── celery_jobs/           # Celery tasks
+│   ├── email/                 # Email services
+│   ├── organization_service/  # Organization business logic
+│   ├── user_service/          # User business logic
+│   └── workflows/             # Workflow services
+├── templates/                  # Email templates
+├── utils/                      # Utility functions
 ├── docker-compose.yml          # Docker Compose configuration
 ├── Dockerfile                  # Docker configuration
-├── README.md                   # Project documentation
-├── celery_worker.py            # Celery worker entry point
 ├── main.py                     # FastAPI application entry point
+├── celery_worker.py            # Celery worker entry point
+├── pyproject.toml              # Project configuration
 └── requirements.txt            # Python dependencies
 ```
 
@@ -147,6 +188,32 @@ uv run ruff check . && uv run ruff format --check .
 docker compose up -d
 ```
 
+## AI Agent System
+
+RoadFlow includes a comprehensive AI agent system designed to handle various business functions through specialized agents:
+
+### Available Agents
+
+- **EngineerAgent**: Handles engineering tasks, changelog management, and technical documentation
+- **ProductAgent**: Manages product roadmaps, feature specifications, and user feedback analysis
+- **OperationsAgent**: Handles system monitoring, process optimization, and incident response
+- **CustomerAgent**: Manages customer inquiries, support tickets, and knowledge base maintenance
+- **GrowthAgent**: Focuses on marketing campaigns, user acquisition, and growth metrics
+
+### Agent Features
+
+- **Tool Integration**: Each agent has access to specialized tools for their domain
+- **Document Management**: Agents can save and retrieve relevant documents
+- **Organization Context**: All agents operate within organization boundaries
+- **Configurable Instructions**: Agent behavior can be customized per organization
+- **Multi-agent Coordination**: Agents can work together on complex tasks
+
+### Agent Tools
+
+- **Changelog Management**: Create, update, and organize project changelogs
+- **Document Output**: Save agent responses as searchable documents
+- **Context Awareness**: Agents maintain organization-specific context
+
 ## Data Model
 
 The application uses a PostgreSQL database with the following main entities:
@@ -155,7 +222,7 @@ The application uses a PostgreSQL database with the following main entities:
 - **Users**: Individual users associated with organizations
 - **Members**: Organization members with specific roles
 - **Integrations**: External service integrations
-- **Agents**: Automated workflow agents
+- **Agents**: AI agents with configurable behavior and tools
 
 ## Environment Variables
 
