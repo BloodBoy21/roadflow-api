@@ -1,15 +1,21 @@
+import os
 from datetime import datetime
+from zoneinfo import ZoneInfo
 
 from pydantic import BaseModel, Field, PrivateAttr
 
 from lib.mongo import db
 from utils.object_id import ObjectId
 
+TZ = os.getenv("TZ", "America/Mexico_City")
+
+tz_zone = ZoneInfo(TZ)
+
 
 class MongoModel(BaseModel):
     id: ObjectId | None = Field(default=None, alias="_id")
-    createdAt: datetime | None = Field(default_factory=datetime.now)
-    updatedAt: datetime | None = Field(default_factory=datetime.now)
+    createdAt: datetime | None = Field(default_factory=lambda: datetime.now(tz_zone))
+    updatedAt: datetime | None = Field(default_factory=lambda: datetime.now(tz_zone))
     _collection_name: str = PrivateAttr()
 
     def __init__(self, **data):

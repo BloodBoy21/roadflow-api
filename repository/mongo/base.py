@@ -1,5 +1,8 @@
 # repository/mongo_repository.py
+import os
+from datetime import datetime
 from typing import Any, TypeVar
+from zoneinfo import ZoneInfo
 
 from loguru import logger
 from pydantic import BaseModel
@@ -7,6 +10,9 @@ from pydantic import BaseModel
 from lib.mongo import db
 from repository.base_repository import BaseRepository
 from utils.object_id import ObjectId
+
+TZ = os.getenv("TZ", "America/Mexico_City")
+tz_zone = ZoneInfo(TZ)
 
 T = TypeVar("T", bound=BaseModel)
 
@@ -40,10 +46,11 @@ class MongoRepository(BaseRepository[T]):
         if not data:
             return None
         if isinstance(data, BaseModel):
-            inserted = self.collection_db.insert_one(
-                data.model_dump(**options, exclude={"_id"})
-            )
-            return self.find_by_id(ObjectId(inserted.inserted_id))
+            data = data.model_dump(**options, exclude={"_id"})
+        _date = datetime.now(tz_zone)
+        data["createdAt"] = _date
+        data["updatedAt"] = _date
+
         inserted = self.collection_db.insert_one(data)
         return self.find_by_id(ObjectId(inserted.inserted_id))
 
@@ -85,7 +92,7 @@ class MongoRepository(BaseRepository[T]):
                 {"$set": data.model_dump(**options)},
             )
             return self.find_one(query)
-
+        data["updatedAt"] = datetime.now(tz_zone)
         self.collection_db.update_one(
             query,
             {"$set": data},

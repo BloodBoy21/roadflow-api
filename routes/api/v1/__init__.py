@@ -1,6 +1,7 @@
 from fastapi import APIRouter
 
 from .agents import agents_router
+from .changelog import changelog_router
 from .docs import docs_router
 from .git import git_router
 from .organization import organization_router
@@ -17,6 +18,7 @@ v1_router.include_router(
 )
 v1_router.include_router(workflow_router, prefix="/workflow", tags=["workflow"])
 v1_router.include_router(docs_router, prefix="/docs", tags=["docs"])
+v1_router.include_router(changelog_router, prefix="/changelog", tags=["changelog"])
 
 @v1_router.get("/")
 async def root():

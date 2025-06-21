@@ -11,8 +11,7 @@ class ChangelogBase(BaseModel):
     description: str
     position: int
     show: bool
-    createdAt: datetime
-    updatedAt: datetime
+    estimated_date: datetime | None = None
 
 
 class Changelog(MongoModel, ChangelogBase):
