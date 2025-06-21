@@ -16,7 +16,6 @@ from models.user import UserRead
 from repository import repository
 from services.agents import AgentCaller, get_available_agents
 
-
 cache = get_cache()
 
 agents_router = APIRouter()

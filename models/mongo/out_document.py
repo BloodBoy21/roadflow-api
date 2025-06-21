@@ -7,12 +7,12 @@ from .mongo_base import MongoModel
 
 class OutDocumentBase(BaseModel):
     organizationId: int | None
-    imageUrl: str | None
-    workflow: ObjectId | None
+    imageUrl: str | None = None
+    workflow: ObjectId | None = None
     text: str | None
-    publish: bool | None
-    platformsIds: list[int] | None
-    tags: list[str] | None
+    publish: bool | None = False
+    platformsIds: list[int] | None = None
+    tags: list[str] | None = None
     agent: str | None
 
 

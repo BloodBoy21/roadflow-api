@@ -149,6 +149,28 @@ class MongoRepository(BaseRepository[T]):
         """Perform bulk write operations."""
         return self.collection_db.bulk_write(operations)
 
+    def paginate(
+        self, query: dict, page: int = 1, limit: int = 20, options: dict = {}
+    ) -> tuple[list[T], int, int]:
+        """Paginate documents matching the query."""
+        if page < 1:
+            page = 1
+        if limit < 1:
+            limit = 20
+        skip = (page - 1) * limit
+        options["skip"] = skip
+        options["limit"] = limit
+        options["sort"] = options.get("sort", ("_id", -1))
+
+        cursor = self.collection_db.find(query, options.get("projection", {}))
+        cursor = self.apply_actions(cursor, options)
+
+        data = [self.__return_model(doc) for doc in cursor]
+        total_count = self.count(query)
+        total_pages = (total_count + limit - 1) // limit
+
+        return data, total_pages, total_count
+
     def __return_model(self, data: dict) -> T | None:
         """Convert a document to a model instance."""
         if not data:
