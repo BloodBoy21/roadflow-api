@@ -11,7 +11,7 @@ def signup_email(name: str, token: str) -> str:
                 <h1 style="color: #2c3e50;">Welcome to <span style="color: #4CAF50;">RoadFlow</span>, {name}!</h1>
                 <p style="font-size: 16px; color: #555;">Thank you for signing up. Please click the link below to verify your email address:</p>
                 <p style="text-align: center; margin: 30px 0;">
-                    <a href="{PAGE_URL}/verify?token={token}" 
+                    <a href="{PAGE_URL}/verify?token={token}"
                        style="background-color: #4CAF50; color: white; padding: 12px 20px; text-decoration: none; border-radius: 5px; font-weight: bold;">
                         Verify Email
                     </a>

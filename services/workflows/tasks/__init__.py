@@ -8,13 +8,15 @@ from pydantic import BaseModel
 def run_task(
     task_name: str,
     payload: dict,
-    context: dict = {},
+    context: dict = None,
     source: str = "",
     source_log_id: str | None = None,
 ):
     """
     Run a specific task by its name.
     """
+    if context is None:
+        context = {}
     module = importlib.import_module(f"services.workflows.tasks.{task_name}")
     if not hasattr(module, "run"):
         logger.error(f"Task {task_name} does not have a run function.")

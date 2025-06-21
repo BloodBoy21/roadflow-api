@@ -18,7 +18,7 @@ class SQLRepository(BaseRepository[T]):
         # Use the class name as part of the key to allow different subclasses to have their own instances
         key = f"{cls.__name__}"
         if key not in cls._instances:
-            cls._instances[key] = super(SQLRepository, cls).__new__(cls)
+            cls._instances[key] = super().__new__(cls)
             cls._instances[key]._initialized = False
         return cls._instances[key]
 
@@ -30,8 +30,10 @@ class SQLRepository(BaseRepository[T]):
         self.model = model
         self._initialized = True
 
-    async def create(self, data: T | dict, options: dict = {}) -> T | None:
+    async def create(self, data: T | dict, options: dict = None) -> T | None:
         """Create a new record in the database."""
+        if options is None:
+            options = {}
         if not data:
             return None
         if isinstance(data, BaseModel):
@@ -42,32 +44,44 @@ class SQLRepository(BaseRepository[T]):
         record = await self.collection.create(data=data)
         return self.__parse_to_model(record)
 
-    async def find(self, query: dict = {}, options: dict = {}) -> list[T]:
+    async def find(self, query: dict = None, options: dict = None) -> list[T]:
         """Find records matching the query."""
+        if options is None:
+            options = {}
+        if query is None:
+            query = {}
         data = await self.collection.find_many(where=query, **options)
         return [self.__parse_to_model(d) for d in data]
 
-    async def find_one(self, query: dict, options: dict = {}) -> T | None:
+    async def find_one(self, query: dict, options: dict = None) -> T | None:
         """Find a single record matching the query."""
+        if options is None:
+            options = {}
         data = await self.collection.find_first(where=query, **options)
         return self.__parse_to_model(data)
 
-    async def find_unique(self, query: dict, options: dict = {}) -> T | None:
+    async def find_unique(self, query: dict, options: dict = None) -> T | None:
         """Find a unique record matching the query."""
+        if options is None:
+            options = {}
         data = await self.collection.find_unique(where=query, **options)
         return self.__parse_to_model(data)
 
     async def get_by_id(
-        self, id: int, options: dict = {}, key: str = "id"
+        self, id: int, options: dict = None, key: str = "id"
     ) -> T | None:
         """Get a record by its ID."""
+        if options is None:
+            options = {}
         data = await self.collection.find_unique(where={key: id}, **options)
         return self.__parse_to_model(data)
 
     async def update(
-        self, query: dict, data: T | dict, options: dict = {}
+        self, query: dict, data: T | dict, options: dict = None
     ) -> T | None:
         """Update records matching the query."""
+        if options is None:
+            options = {}
         if not data:
             return None
         if isinstance(data, BaseModel):
@@ -80,9 +94,11 @@ class SQLRepository(BaseRepository[T]):
         return self.__parse_to_model(updated)
 
     async def update_by_id(
-        self, id: int, data: T | dict, options: dict = {}
+        self, id: int, data: T | dict, options: dict = None
     ) -> T | None:
         """Update a record by its ID."""
+        if options is None:
+            options = {}
         if not data:
             return None
         if isinstance(data, BaseModel):
@@ -102,8 +118,10 @@ class SQLRepository(BaseRepository[T]):
         """Delete multiple records matching the query."""
         return await self.collection.delete_many(where=query)
 
-    async def count(self, query: dict = {}) -> int:
+    async def count(self, query: dict = None) -> int:
         """Count records matching the query."""
+        if query is None:
+            query = {}
         return await self.collection.count(where=query)
 
     async def exists(self, **kwargs) -> bool:

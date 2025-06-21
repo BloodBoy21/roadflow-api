@@ -7,11 +7,13 @@ from services.email import send_email
 
 def run(
     payload: dict,
-    context: dict = {},
+    context: dict = None,
     source: str = "",
     source_log_id: str | None = None,
     **kwargs,
 ):
+    if context is None:
+        context = {}
     try:
         emails: str = payload.get("to", "")
         if not emails:

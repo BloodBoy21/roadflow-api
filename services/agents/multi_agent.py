@@ -47,7 +47,7 @@ class MultiAgent(AgentBase):
         ### Style Guidelines
         - Respond in **Spanish**, using a **formal and courteous** tone.
         - Do **not** disclose internal orchestration details (e.g., agent names, method calls, IDs).
-        - If none of the sub-agents can fulfill the request, respond with:  
+        - If none of the sub-agents can fulfill the request, respond with:
           _"Lo siento, no dispongo de la información necesaria para resolver tu solicitud."_
 
         ---

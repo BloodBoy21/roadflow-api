@@ -20,7 +20,7 @@ class MongoRepository(BaseRepository[T]):
         # Use the class name as part of the key to allow different subclasses to have their own instances
         key = f"{cls.__name__}"
         if key not in cls._instances:
-            cls._instances[key] = super(MongoRepository, cls).__new__(cls)
+            cls._instances[key] = super().__new__(cls)
             cls._instances[key]._initialized = False
         return cls._instances[key]
 
@@ -33,8 +33,10 @@ class MongoRepository(BaseRepository[T]):
         self.model = model
         self._initialized = True
 
-    def create(self, data: T | dict, options: dict = {}) -> T | None:
+    def create(self, data: T | dict, options: dict = None) -> T | None:
         """Create a new document in the MongoDB collection."""
+        if options is None:
+            options = {}
         if not data:
             return None
         if isinstance(data, BaseModel):
@@ -45,14 +47,18 @@ class MongoRepository(BaseRepository[T]):
         inserted = self.collection_db.insert_one(data)
         return self.find_by_id(ObjectId(inserted.inserted_id))
 
-    def find(self, query: dict, options: dict = {}) -> list[T]:
+    def find(self, query: dict, options: dict = None) -> list[T]:
         """Find documents matching the query."""
+        if options is None:
+            options = {}
         cursor = self.collection_db.find(query, options.get("projection", {}))
         cursor = self.apply_actions(cursor, options)
         return [self.__return_model(data) for data in cursor]
 
-    def find_one(self, query: dict, options: dict = {}) -> T | None:
+    def find_one(self, query: dict, options: dict = None) -> T | None:
         """Find a single document matching the query."""
+        if options is None:
+            options = {}
         try:
             return self.__return_model(self.collection_db.find_one(query))
         except Exception as e:
@@ -63,9 +69,11 @@ class MongoRepository(BaseRepository[T]):
         self,
         query: dict,
         data: T | dict,
-        options: dict = {"exclude_none": True},
+        options: dict = None,
     ) -> T | None:
         """Update documents matching the query."""
+        if options is None:
+            options = {"exclude_none": True}
         if not data:
             return None
         document = self.collection_db.find_one(query)
@@ -88,9 +96,11 @@ class MongoRepository(BaseRepository[T]):
         self,
         id: ObjectId | str,
         data: T | dict,
-        options: dict = {"exclude_none": True},
+        options: dict = None,
     ) -> T | None:
         """Update a document by its ID."""
+        if options is None:
+            options = {"exclude_none": True}
         if isinstance(id, str):
             id = ObjectId(id)
         if not data:
@@ -98,20 +108,28 @@ class MongoRepository(BaseRepository[T]):
         self.update({"_id": id}, data, options)
         return self.find_by_id(id)
 
-    def delete(self, query: dict = {}) -> Any:
+    def delete(self, query: dict = None) -> Any:
         """Delete a document matching the query."""
+        if query is None:
+            query = {}
         return self.collection_db.delete_one(query)
 
-    def delete_many(self, query: dict = {}) -> Any:
+    def delete_many(self, query: dict = None) -> Any:
         """Delete multiple documents matching the query."""
+        if query is None:
+            query = {}
         return self.collection_db.delete_many(query)
 
-    def count(self, query: dict = {}) -> int:
+    def count(self, query: dict = None) -> int:
         """Count documents matching the query."""
+        if query is None:
+            query = {}
         return self.collection_db.count_documents(query)
 
-    def find_by_id(self, id: ObjectId | str, options: dict = {}) -> T | None:
+    def find_by_id(self, id: ObjectId | str, options: dict = None) -> T | None:
         """Find a document by its ID."""
+        if options is None:
+            options = {}
         if isinstance(id, str):
             id = ObjectId(id)
         return self.__return_model(self.collection_db.find_one({"_id": id}))
@@ -122,14 +140,18 @@ class MongoRepository(BaseRepository[T]):
             id = ObjectId(id)
         return self.collection_db.delete_one({"_id": id})
 
-    def apply_actions(self, cursor, options: dict = {}) -> Any:
+    def apply_actions(self, cursor, options: dict = None) -> Any:
         """Apply cursor actions based on the options."""
+        if options is None:
+            options = {}
         for action in options:
             cursor = self.cursor_actions(cursor, action, options)
         return cursor
 
-    def cursor_actions(self, cursor, action: str, options: dict = {}) -> Any:
+    def cursor_actions(self, cursor, action: str, options: dict = None) -> Any:
         """Apply specific cursor actions."""
+        if options is None:
+            options = {}
         match action:
             case "sort":
                 key, type = options.get("sort", ("_id", -1))
@@ -150,9 +172,11 @@ class MongoRepository(BaseRepository[T]):
         return self.collection_db.bulk_write(operations)
 
     def paginate(
-        self, query: dict, page: int = 1, limit: int = 20, options: dict = {}
+        self, query: dict, page: int = 1, limit: int = 20, options: dict = None
     ) -> tuple[list[T], int, int]:
         """Paginate documents matching the query."""
+        if options is None:
+            options = {}
         if page < 1:
             page = 1
         if limit < 1:

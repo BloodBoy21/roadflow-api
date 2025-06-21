@@ -11,7 +11,7 @@ def join_to_org_email(organization_name: str, token: str) -> str:
                 <h1 style="color: #2c3e50;">Join {organization_name} on RoadFlow</h1>
                 <p style="font-size: 16px; color: #555;">You have been invited to join the organization. Please click the link below to accept the invitation:</p>
                 <p style="text-align: center; margin: 30px 0;">
-                    <a href="{PAGE_URL}/join?token={token}" 
+                    <a href="{PAGE_URL}/join?token={token}"
                        style="background-color: #4CAF50; color: white; padding: 12px 20px; text-decoration: none; border-radius: 5px; font-weight: bold;">
                         Join Organization
                     </a>

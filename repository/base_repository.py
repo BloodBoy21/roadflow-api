@@ -15,33 +15,33 @@ class BaseRepository(Generic[T], ABC):
         pass
 
     @abstractmethod
-    def create(self, data: T | dict, options: dict = {}) -> T | None:
+    def create(self, data: T | dict, options: dict = None) -> T | None:
         """Create a new document/record in the database."""
         pass
 
     @abstractmethod
-    def find(self, query: dict, options: dict = {}) -> list[T]:
+    def find(self, query: dict, options: dict = None) -> list[T]:
         """Find documents/records matching the query."""
         pass
 
     @abstractmethod
-    def find_one(self, query: dict, options: dict = {}) -> T | None:
+    def find_one(self, query: dict, options: dict = None) -> T | None:
         """Find a single document/record matching the query."""
         pass
 
     @abstractmethod
     def update(
-        self, query: dict, data: T | dict, options: dict = {}
+        self, query: dict, data: T | dict, options: dict = None
     ) -> T | None:
         """Update documents/records matching the query."""
         pass
 
     @abstractmethod
-    def delete(self, query: dict = {}) -> Any:
+    def delete(self, query: dict = None) -> Any:
         """Delete a document/record matching the query."""
         pass
 
     @abstractmethod
-    def count(self, query: dict = {}) -> int:
+    def count(self, query: dict = None) -> int:
         """Count documents/records matching the query."""
         pass

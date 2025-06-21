@@ -60,7 +60,7 @@ class WorkflowService:
     def run_workflow(
         workflow: Workflow,
         payload: dict,
-        context: dict = {},
+        context: dict = None,
         source: str = "",
         source_log_id: str | None = None,
     ):
@@ -68,6 +68,8 @@ class WorkflowService:
         Run a specific workflow
         This is a static method to allow running workflows without needing an instance.
         """
+        if context is None:
+            context = {}
         if not isinstance(workflow, Workflow):
             raise TypeError(
                 f"Expected an instance of Workflow, got {type(workflow).__name__}"
@@ -98,15 +100,15 @@ class WorkflowService:
         You are an AI agent responsible for executing workflows based on the provided context and input data.
         Your task is to analyze the input data, process it according to the workflow's logic, and return the result.
         Ensure that you follow the workflow's steps and utilize the context provided to make informed decisions.
-        
+
         ## Workflow Details
         User prompt: {workflow.prompt}
-        
+
         Context: {json.dumps(context, indent=2)}
-        
+
         Input data to analyze and process:
         {json.dumps(payload, indent=2)}
-        
+
         """
 
         res = asyncio.run(agent_caller.generate(text=prompt))
@@ -147,8 +149,8 @@ class WorkflowService:
     @staticmethod
     def run_task(
         workflow: Workflow,
-        payload: dict = {},
-        context: dict = {},
+        payload: dict = None,
+        context: dict = None,
         source: str = "",
         source_log_id: str | None = None,
     ):
@@ -156,6 +158,10 @@ class WorkflowService:
         Run a specific workflow task
         This is a static method to allow running tasks without needing an instance.
         """
+        if context is None:
+            context = {}
+        if payload is None:
+            payload = {}
         task_template = repository.mongo.task.find_by_id(workflow.task_template_id)
         if not task_template:
             logger.error(

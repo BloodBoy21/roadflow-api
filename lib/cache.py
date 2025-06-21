@@ -9,7 +9,7 @@ class RedisCache:
     def __new__(cls, *args, **kwargs):
         # Si no existe una instancia, la crea
         if cls._instance is None:
-            cls._instance = super(RedisCache, cls).__new__(cls)
+            cls._instance = super().__new__(cls)
             cls._instance._initialize()
         return cls._instance
 
