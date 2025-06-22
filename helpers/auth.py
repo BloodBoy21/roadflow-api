@@ -63,7 +63,7 @@ async def user_is_authenticated(token: str = Depends(oauth2_scheme)) -> User:
             )
         payload: UserToken = UserToken(**payload)
         logger.info(f"Decoded token payload: {payload}")
-        user: User = await repository.sql.user.get_by_id(id=payload.user_id)
+        user: User = await repository.sql.user.find_by_id(id=payload.user_id)
         if not user:
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,

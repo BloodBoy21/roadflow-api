@@ -21,7 +21,7 @@ class TestAgentFactory:
         content_config = ContentConfig()
 
         # Act
-        result = AgentFactory.create_agent(
+        result = AgentFactory.create_agent_legacy(
             agent_name="TestAgent",
             tools=[],
             content_config=content_config
@@ -49,7 +49,7 @@ class TestAgentFactory:
         sub_agents = [Mock()]
 
         # Act
-        result = AgentFactory.create_agent(
+        result = AgentFactory.create_agent_legacy(
             agent_name="ComplexAgent",
             tools=tools,
             model="custom-model",

@@ -19,9 +19,62 @@ from .tools import out_docs
 DEFAULT_MODEL = os.getenv("DEFAULT_MODEL", "gemini-2.0-flash")
 
 
+class AgentConfig:
+    """Configuration class for agent creation."""
+
+    def __init__(
+        self,
+        name: str,
+        tools: list[types.Tool],
+        description: str = "An agent that can perform various tasks using tools.",
+        model: str = DEFAULT_MODEL,
+        instructions: str = "",
+        global_instruction: str = "",
+        content_config: ContentConfig = None,
+        output_key: str = None,
+        sub_agents: list[LlmAgent] = None,
+        server_params: SseServerParams | StdioServerParameters = None,
+        agent_params: dict[str, str] = None,
+    ):
+        self.name = name
+        self.tools = tools
+        self.description = description
+        self.model = model
+        self.instructions = instructions
+        self.global_instruction = global_instruction
+        self.content_config = content_config or ContentConfig()
+        self.output_key = output_key
+        self.sub_agents = sub_agents or []
+        self.server_params = server_params
+        self.agent_params = agent_params or {}
+
+
 class AgentFactory:
     @staticmethod
-    def create_agent(
+    def create_agent(config: AgentConfig) -> LlmAgent:
+        """
+        Create an LLM agent with the specified configuration.
+        """
+        return LlmAgent(
+            name=config.name,
+            model=config.model,
+            tools=config.tools,
+            description=config.description,
+            instruction=config.instructions,
+            global_instruction=AgentFactory.global_prompt(
+                custom_prompt=config.global_instruction
+            ),
+            generate_content_config=types.GenerateContentConfig(
+                temperature=config.content_config.temperature,
+                top_p=config.content_config.top_p,
+                top_k=config.content_config.top_k,
+            ),
+            output_key=config.output_key or AgentFactory.create_output_key(config.name),
+            sub_agents=config.sub_agents,
+        )
+
+    @staticmethod
+    def create_agent_legacy(
         agent_name: str,
         tools: list[types.Tool],
         server_params: SseServerParams | StdioServerParameters = None,
@@ -35,27 +88,22 @@ class AgentFactory:
         sub_agents: list[LlmAgent] = None,
     ) -> LlmAgent:
         """
-        Create an LLM agent with the specified parameters.
+        Legacy method for backward compatibility.
         """
-        if agent_params is None:
-            agent_params = {}
-        return LlmAgent(
+        config = AgentConfig(
             name=agent_name,
-            model=model,
             tools=tools,
             description=description,
-            instruction=instructions or "",
-            global_instruction=AgentFactory.global_prompt(
-                custom_prompt=global_instruction or ""
-            ),
-            generate_content_config=types.GenerateContentConfig(
-                temperature=content_config.temperature,
-                top_p=content_config.top_p,
-                top_k=content_config.top_k,
-            ),
-            output_key=output_key or AgentFactory.create_output_key(agent_name),
-            sub_agents=sub_agents or [],
+            model=model,
+            instructions=instructions or "",
+            global_instruction=global_instruction or "",
+            content_config=content_config,
+            output_key=output_key,
+            sub_agents=sub_agents,
+            server_params=server_params,
+            agent_params=agent_params,
         )
+        return AgentFactory.create_agent(config)
 
     @staticmethod
     def global_prompt(custom_prompt: str = "") -> str:
@@ -108,17 +156,16 @@ class AgentBase:
         """
         if self.agent is not None:
             return self.agent
-        self.agent = AgentFactory.create_agent(
-            agent_name=self.name,
+        config = AgentConfig(
+            name=self.name,
             tools=self.build_tools,
-            server_params=None,
-            agent_params=None,
             description=self.description,
             content_config=self.content_config,
             global_instruction=self.global_instruction,
             instructions=self.instructions,
             sub_agents=self.sub_agents,
         )
+        self.agent = AgentFactory.create_agent(config)
         return self.agent
 
     @property

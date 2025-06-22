@@ -1,41 +1,48 @@
 import os
+from functools import lru_cache
 
 import redis
 
 
+class CacheConfig:
+    """Configuration for Redis cache connection."""
+
+    def __init__(self):
+        self.host = os.getenv("REDIS_HOST", "localhost")
+        self.port = int(os.getenv("REDIS_PORT", 6379))
+        self.db = int(os.getenv("REDIS_DB", 0))
+        self.uri = os.getenv("REDIS_URI", None)
+
+
 class RedisCache:
-    _instance = None  # Almacena la única instancia de la clase
+    """Redis cache client wrapper."""
 
-    def __new__(cls, *args, **kwargs):
-        # Si no existe una instancia, la crea
-        if cls._instance is None:
-            cls._instance = super().__new__(cls)
-            cls._instance._initialize()
-        return cls._instance
+    def __init__(self, config: CacheConfig = None):
+        if config is None:
+            config = CacheConfig()
 
-    def _initialize(self):
-        # Configuración de la conexión a Redis
-        self.HOST = os.getenv("REDIS_HOST", "localhost")
-        self.PORT = os.getenv("REDIS_PORT", 6379)
-        self.DB = os.getenv("REDIS_DB", 0)
-        self.URI = os.getenv("REDIS_URI", None)
-
-        # Inicializa la conexión a Redis
-        if self.URI:
-            self.cache = redis.Redis.from_url(self.URI)
+        # Initialize Redis connection
+        if config.uri:
+            self.cache = redis.Redis.from_url(config.uri)
         else:
             self.cache = redis.Redis(
-                host=self.HOST, port=int(self.PORT), db=int(self.DB)
+                host=config.host,
+                port=config.port,
+                db=config.db
             )
 
-        if self.cache is None:
-            raise Exception("Failed to initialize cache")
+        # Test connection
+        try:
+            self.cache.ping()
+        except redis.ConnectionError as e:
+            raise ConnectionError(f"Failed to connect to Redis: {e}") from e
 
     def get_cache(self):
-        # Devuelve la instancia de Redis
+        """Get the Redis client instance."""
         return self.cache
 
 
-# Uso del Singleton
+@lru_cache(maxsize=1)
 def get_cache():
+    """Get a cached Redis client instance."""
     return RedisCache().get_cache()

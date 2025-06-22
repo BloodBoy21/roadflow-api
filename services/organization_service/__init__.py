@@ -20,7 +20,7 @@ async def send_invite_to_org(
     org_id: int, users: list[InvitationCreate]
 ) -> OrganizationUserRead:
     """Invite users to an organization."""
-    org: OrganizationRead = await repository.sql.organization.get_by_id(org_id)
+    org: OrganizationRead = await repository.sql.organization.find_by_id(org_id)
     if not org:
         raise ValueError(f"Organization with ID {org_id} does not exist.")
     for user in users:
@@ -75,7 +75,7 @@ async def validate_invite_token(token: str) -> InvitationRead:
         if not invitation_id:
             raise ValueError("Invalid token: 'invitation_id' not found in payload.")
 
-        invitation = await repository.sql.invitation.get_by_id(invitation_id)
+        invitation = await repository.sql.invitation.find_by_id(invitation_id)
         if not invitation:
             raise ValueError(f"Invitation with ID {invitation_id} does not exist.")
 

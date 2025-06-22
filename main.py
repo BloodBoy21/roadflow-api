@@ -10,6 +10,7 @@ from fastapi_limiter import FastAPILimiter
 from loguru import logger
 
 from helpers.auth import create_token, decode_email_token
+from helpers.error_handling import raise_server_error
 from lib.cache import get_cache
 from lib.mongo import client as mongo_client
 from lib.prisma import prisma
@@ -97,11 +98,11 @@ async def signup(user: UserCreate):
         ) from e
     except Exception as e:
         logger.exception("Unexpected error during user signup")
-        logger.error(f"Unexpected error: {e}")
-        raise HTTPException(
+        raise_server_error(
+            e,
+            "An unexpected error occurred during user signup.",
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="An unexpected error occurred.",
-        ) from e
+        )
 
 
 @app.post(
@@ -164,12 +165,11 @@ async def verify_email(token: str):
         ) from e
     except Exception as e:
         logger.exception("Unexpected error during email verification")
-        logger.error(f"Unexpected error: {e}")
-        raise HTTPException(
+        raise_server_error(
+            e,
+            "An unexpected error occurred during email verification.",
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="An unexpected error occurred.",
-        ) from e
-
+        )
 
 @app.post(
     "/login", response_model=Union[Response[AuthResponse], ErrorResponse], tags=["auth"]
@@ -196,11 +196,11 @@ async def login(user: UserLogin):
         ) from e
     except Exception as e:
         logger.exception("Unexpected error during user login")
-        logger.error(f"Unexpected error: {e}")
-        raise HTTPException(
+        raise_server_error(
+            e,
+            "An unexpected error occurred during user login.",
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="An unexpected error occurred.",
-        ) from e
+        )
 
 
 if __name__ == "__main__":

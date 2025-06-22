@@ -20,24 +20,11 @@ T = TypeVar("T", bound=BaseModel)
 class MongoRepository(BaseRepository[T]):
     """MongoDB repository implementation."""
 
-    _instances = {}  # Class-level dictionary to store instances
-
-    def __new__(cls, *args, **kwargs):
-        # Use the class name as part of the key to allow different subclasses to have their own instances
-        key = f"{cls.__name__}"
-        if key not in cls._instances:
-            cls._instances[key] = super().__new__(cls)
-            cls._instances[key]._initialized = False
-        return cls._instances[key]
-
     def __init__(self, collection: str, model: type[T]):
-        if hasattr(self, "_initialized") and self._initialized:
-            return
         self.db = db
         self.collection = collection
         self.collection_db = getattr(self.db, collection)
         self.model = model
-        self._initialized = True
 
     def create(self, data: T | dict, options: dict = None) -> T | None:
         """Create a new document in the MongoDB collection."""
@@ -68,8 +55,11 @@ class MongoRepository(BaseRepository[T]):
             options = {}
         try:
             return self.__return_model(self.collection_db.find_one(query))
+        except (ConnectionError, TimeoutError) as e:
+            logger.error(f"Database connection error in find_one: {e}")
+            raise
         except Exception as e:
-            logger.error(e)
+            logger.error(f"Unexpected error in find_one: {e}")
             return None
 
     def update(
@@ -85,7 +75,7 @@ class MongoRepository(BaseRepository[T]):
             return None
         document = self.collection_db.find_one(query)
         if not document:
-            raise Exception("Document not found")
+            raise ValueError("Document not found")
         if isinstance(data, BaseModel):
             self.collection_db.update_one(
                 query,

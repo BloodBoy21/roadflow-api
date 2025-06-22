@@ -67,7 +67,7 @@ class SQLRepository(BaseRepository[T]):
         data = await self.collection.find_unique(where=query, **options)
         return self.__parse_to_model(data)
 
-    async def get_by_id(
+    async def find_by_id(
         self, id: int, options: dict = None, key: str = "id"
     ) -> T | None:
         """Get a record by its ID."""
@@ -113,6 +113,10 @@ class SQLRepository(BaseRepository[T]):
     async def delete(self, query: dict) -> Any:
         """Delete a record matching the query."""
         return await self.collection.delete(where=query)
+
+    async def delete_by_id(self, id: int) -> Any:
+        """Delete a record by its ID."""
+        return await self.collection.delete(where={"id": id})
 
     async def delete_many(self, query: dict) -> Any:
         """Delete multiple records matching the query."""

@@ -45,3 +45,18 @@ class BaseRepository(Generic[T], ABC):
     def count(self, query: dict = None) -> int:
         """Count documents/records matching the query."""
         pass
+
+    @abstractmethod
+    def find_by_id(self, id: Any, options: dict = None) -> T | None:
+        """Find a document/record by its ID."""
+        pass
+
+    @abstractmethod
+    def update_by_id(self, id: Any, data: T | dict, options: dict = None) -> T | None:
+        """Update a document/record by its ID."""
+        pass
+
+    @abstractmethod
+    def delete_by_id(self, id: Any) -> Any:
+        """Delete a document/record by its ID."""
+        pass

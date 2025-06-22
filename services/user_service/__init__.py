@@ -9,14 +9,14 @@ from services.email import send_email
 from templates.email.signup import signup_email
 
 
-async def exits_user(email: str) -> bool:
+async def exists_user(email: str) -> bool:
     """Check if a user exists by email."""
     return await repository.sql.user.exists(email=email)
 
 
 async def create_user(user: UserCreate) -> UserRead:
     """Create and return the user service."""
-    if await exits_user(email=user.email):
+    if await exists_user(email=user.email):
         raise ValueError(f"User with email {user.email} already exists.")
 
     hashed_password = bcrypt.hashpw(
@@ -79,7 +79,7 @@ def send_validation_email(user: UserRead) -> None:
 
 async def verify_user_email(user_id: str) -> UserRead:
     """Verify user's email."""
-    user: UserRead = await repository.sql.user.get_by_id(id=user_id)
+    user: UserRead = await repository.sql.user.find_by_id(id=user_id)
     if not user:
         raise ValueError("User not found.")
 
