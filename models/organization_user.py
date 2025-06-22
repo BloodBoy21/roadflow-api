@@ -18,6 +18,11 @@ class OrganizationUserCreate(OrganizationUserBase):
     pass
 
 
+class OrganizationUserOut(OrganizationUserBase):
+    first_name: str | None = None
+    last_name: str | None = None
+
+
 class OrganizationUserRead(OrganizationUserBase):
     id: int
     organization: OrganizationRead | None = None

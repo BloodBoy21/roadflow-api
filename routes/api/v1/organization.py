@@ -9,8 +9,9 @@ from middleware.org_middleware import (
     validate_user_verified_middleware,
 )
 from models.input_webhook import InputWebhookCreate, InputWebhookRead
-from models.invitation import InvitationCreate
-from models.response.api import Response
+from models.invitation import InvitationCreate, InvitationRead
+from models.response.api import Response, PaginateResponse
+from models.organization_user import OrganizationUserOut, OrganizationUserRead
 from models.user import UserRead
 from repository import repository
 from services.organization_service import accept_invite, send_invite_to_org
@@ -96,3 +97,72 @@ async def validate_invite_token(
     except Exception as e:
         logger.error(e)
         raise HTTPException(status_code=400, detail=str(e)) from e
+
+@organization_router.get(
+    "/{org_id}/invite",
+    status_code=status.HTTP_200_OK,
+    response_model=PaginateResponse[InvitationRead],
+)
+@validate_user_verified_middleware
+@validate_org_middleware
+async def get_invites(
+    org_id: int,
+    limit: int = 20,
+    page: int = 1,
+    user: UserRead = Depends(user_is_authenticated),
+):
+    try:
+        # Fetch the list of invites for the organization
+        invites, pages, total = await repository.sql.invitation.get_by_organization_id(
+            organization_id=org_id, page=page, limit=limit
+        )
+        return {
+            "data": invites,
+            "pages": pages,
+            "total": total,
+        }
+    except Exception as e:
+        logger.error(e)
+        raise HTTPException(status_code=500, detail=str(e)) from e
+
+
+@organization_router.get(
+    "/{org_id}/members",
+    status_code=status.HTTP_200_OK,
+    response_model=PaginateResponse[OrganizationUserOut],
+)
+@validate_user_verified_middleware
+@validate_org_middleware
+async def get_organization_members(
+    org_id: int,
+    limit: int = 20,
+    page: int = 1,
+    user: UserRead = Depends(user_is_authenticated),
+):
+    try:
+        (
+            members,
+            pages,
+            total,
+        ) = await repository.sql.organization_user.get_members_by_organization_id(
+            organization_id=org_id, page=page, limit=limit
+        )
+        logger.info(f"Fetched {len(members)} members for organization {org_id}")
+        members = [
+            OrganizationUserOut(
+                first_name=member.user.first_name,
+                last_name=member.user.last_name,
+                organizationId=org_id,
+                userId=member.user.id,
+                role=member.role,
+            )
+            for member in members
+        ]
+        return {
+            "data": members,
+            "pages": pages,
+            "total": total,
+        }
+    except Exception as e:
+        logger.error(e)
+        raise HTTPException(status_code=500, detail=str(e)) from e

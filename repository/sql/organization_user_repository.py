@@ -26,3 +26,12 @@ class OrganizationUserRepository(SQLRepository[OrganizationUserRead]):
     async def user_in_organization(self, user_id: int, organization_id: int) -> bool:
         """Check if a user is in an organization."""
         return await self.exists(userId=user_id, organizationId=organization_id)
+
+    async def get_members_by_organization_id(
+        self, organization_id: int, page: int = 1, limit: int = 20
+    ) -> tuple[list[OrganizationUserRead], int, int]:
+        """Get all members of an organization."""
+        query = {"organizationId": organization_id}
+        return await self.paginate(
+            query, page=page, limit=limit, options={"include": {"user": True}}
+        )

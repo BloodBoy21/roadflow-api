@@ -5,7 +5,7 @@ from pydantic import BaseModel
 
 from lib.prisma import prisma
 from repository.base_repository import BaseRepository
-
+from loguru import logger
 T = TypeVar("T", bound=BaseModel)
 
 
@@ -132,6 +132,30 @@ class SQLRepository(BaseRepository[T]):
         """Check if a record exists matching the given criteria."""
         data = await self.collection.find_first(where=kwargs)
         return data is not None
+
+    async def paginate(
+        self, query: dict = None, page: int = 1, limit: int = 20, options: dict = None
+    ) -> list[T]:
+        """Paginate records matching the query."""
+        if options is None:
+            options = {}
+        if query is None:
+            query = {}
+        if page < 1:
+            page = 1
+        if limit < 1:
+            limit = 20
+        skip = (page - 1) * limit
+        data = await self.collection.find_many(
+            where=query, skip=skip, take=limit, **options
+        )
+        data: list = [self.__parse_to_model(d) for d in data]
+        total_count: int = await self.collection.count(where=query)
+        total_pages: int = (total_count + limit - 1) // limit
+        logger.debug(
+            f"Paginated {len(data)} records for query {query} on page {page} with limit {limit}"
+        )
+        return data, total_pages, total_count
 
     def __parse_to_model(self, data: Any) -> T | None:
         """Convert a database record to a model instance."""

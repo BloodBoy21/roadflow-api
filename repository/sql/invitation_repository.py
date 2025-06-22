@@ -18,3 +18,10 @@ class InvitationRepository(SQLRepository[InvitationRead]):
             "organizationId": organization_id,
         }
         return await self.find_one(query)
+
+    async def get_by_organization_id(
+        self, organization_id: int, page: int = 1, limit: int = 20
+    ) -> tuple[list[InvitationRead], int, int]:
+        """Get all invitations for a specific organization."""
+        query = {"organizationId": organization_id}
+        return await self.paginate(query, page=page, limit=limit)
