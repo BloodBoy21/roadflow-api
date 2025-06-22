@@ -3,14 +3,14 @@ type: docker
 name: deploy-flow-api
 
 steps:
-  - name: setup-docker
-    image: docker
+  - name: test-runner
+    image: arm64v8/alpine
     commands:
-      - docker buildx create --use
-      - docker buildx inspect --bootstrap
+      - uname -m
+      - echo "✅ Runner ARM64 funcionando"
 
   - name: build-image
-    image: docker
+    image: moby/buildkit:latest
     environment:
       REGION: us-west1
       PROJECT_ID: manifest-grin-462423-m3
@@ -20,15 +20,17 @@ steps:
       REMOTE_IMAGE: us-west1-docker.pkg.dev/manifest-grin-462423-m3/hackaton/flow-api:latest
     commands:
       - echo "🔨 Building Docker image..."
-      - docker buildx build --platform linux/amd64 -t $LOCAL_IMAGE . --no-cache
+      - buildctl build \
+          --frontend dockerfile.v0 \
+          --local context=. \
+          --local dockerfile=. \
+          --output type=docker,name=$REMOTE_IMAGE \
+          --opt platform=linux/amd64 \
+          --no-cache
 
   - name: tag-and-push
-    image: docker
+    image: docker.io/arm64v8/docker
     environment:
-      REGION: us-west1
-      PROJECT_ID: manifest-grin-462423-m3
-      REPO_NAME: hackaton
-      SERVICE_NAME: flow-api
       LOCAL_IMAGE: bloodbloy/flow-api
       REMOTE_IMAGE: us-west1-docker.pkg.dev/manifest-grin-462423-m3/hackaton/flow-api:latest
     commands:
@@ -37,7 +39,7 @@ steps:
       - docker push $REMOTE_IMAGE
 
   - name: write-env-file
-    image: alpine
+    image: arm64v8/alpine
     environment:
       ENV_FILE_CONTENT:
         from_secret: cloudrun_env_yaml
@@ -45,7 +47,7 @@ steps:
       - echo "$ENV_FILE_CONTENT" > .env.yaml
 
   - name: deploy-cloud-run
-    image: google/cloud-sdk
+    image: gcr.io/google.com/cloudsdktool/cloud-sdk:slim
     environment:
       PROJECT_ID: manifest-grin-462423-m3
       REGION: us-west1
@@ -68,10 +70,7 @@ steps:
           --cpu 2 \
           --project $PROJECT_ID
 
-
-
 trigger:
   branch:
     - main
     - master
-
