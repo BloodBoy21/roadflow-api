@@ -25,5 +25,5 @@ class ChangelogRepository(MongoRepository[Changelog]):
         """
         query = {"organizationId": org_id}
         return self.paginate(
-            query=query, page=page, limit=limit, options={"sort": [("position", 1)]}
+            query=query, page=page, limit=limit, options={"sort": ("position", 1)}
         )

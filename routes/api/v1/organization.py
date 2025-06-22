@@ -61,6 +61,35 @@ async def delete_webhook_input(
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e)) from e
 
+@organization_router.get(
+    "/{org_id}/webhook/input",
+    response_model=PaginateResponse[InputWebhookRead],
+)
+@validate_user_verified_middleware
+@validate_org_middleware
+async def get_webhook_inputs(
+    org_id: int,
+    limit: int = 20,
+    page: int = 1,
+    user: UserRead = Depends(user_is_authenticated),
+):
+    try:
+        # Fetch the list of input webhooks for the organization
+        (
+            webhooks,
+            pages,
+            total,
+        ) = await repository.sql.input_webhook.get_by_organization_id(
+            organization_id=org_id, page=page, limit=limit
+        )
+        return {
+            "data": webhooks,
+            "pages": pages,
+            "total": total,
+        }
+    except Exception as e:
+        logger.error(e)
+        raise HTTPException(status_code=500, detail=str(e)) from e
 
 @organization_router.post(
     "/{org_id}/invite",
@@ -99,7 +128,7 @@ async def validate_invite_token(
         raise HTTPException(status_code=400, detail=str(e)) from e
 
 @organization_router.get(
-    "/{org_id}/invite",
+    "/{org_id}/invites",
     status_code=status.HTTP_200_OK,
     response_model=PaginateResponse[InvitationRead],
 )
