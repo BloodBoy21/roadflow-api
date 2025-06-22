@@ -15,6 +15,7 @@ from models.mongo.workflow import CreateWorkFlow, CreateWorkflowTask, Workflow
 from models.response.api import Response
 from models.user import UserRead
 from repository import repository
+from utils.object_id import ObjectId
 
 cache = get_cache()
 workflow_router = APIRouter()
@@ -32,7 +33,7 @@ async def create_workflow(
     try:
         last_node = None
         if head_node:
-            last_node: Workflow = repository.mongo.workflow.get_last_node_id(
+            last_node: ObjectId = repository.mongo.workflow.get_last_node_id(
                 workflow_id=head_node
             )
             if not last_node:
@@ -51,7 +52,7 @@ async def create_workflow(
         )
         if last_node:
             repository.mongo.workflow.update_by_id(
-                id=last_node.id,
+                id=last_node,
                 data={"next_flow": workflow.id},
             )
         cache.delete(f"workflow_last_node_{head_node}")
@@ -76,7 +77,7 @@ async def create_workflow_task(
     try:
         last_node = None
         if head_node:
-            last_node: Workflow = repository.mongo.workflow.get_last_node_id(
+            last_node: ObjectId = repository.mongo.workflow.get_last_node_id(
                 workflow_id=head_node
             )
             if not last_node:
@@ -95,7 +96,7 @@ async def create_workflow_task(
         )
         if last_node:
             repository.mongo.workflow.update_by_id(
-                id=last_node.id,
+                id=last_node,
                 data={"next_flow": workflow.id},
             )
         cache.delete(f"workflow_last_node_{head_node}")
