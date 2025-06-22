@@ -261,7 +261,7 @@ async def delete_workflow(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail="Only head workflows can be deleted",
             )
-        repository.mongo.workflow.delete_workflow(id=workflow_id)
+        repository.mongo.workflow.delete_workflow(workflow_id=workflow_id)
         cache.delete(f"workflow_last_node_{workflow_id}")
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e)) from e
