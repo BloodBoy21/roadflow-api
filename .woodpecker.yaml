@@ -2,46 +2,46 @@ when:
   - branch: main
     event: push
 
-variables:
-  REGION: "us-west1"
-  PROJECT_ID: "manifest-grin-462423-m3"
-  REPO_NAME: "hackaton"
-  SERVICE_NAME: "flow-api"
+
 
 steps:
   build:
-    image: google/cloud-sdk:alpine
-    environment:
-      "GCP_SERVICE_ACCOUNT_KEY":
+    image: plugins/docker
+    settings:
+      registry: us-west1-docker.pkg.dev
+      repo: us-west1-docker.pkg.dev/manifest-grin-462423-m3/hackaton/flow-api
+      tags: latest
+      username: _json_key
+      password:
         from_secret: gcloud
-    commands:
-      - echo "$GCP_SERVICE_ACCOUNT_KEY" | base64 -d > /tmp/gcp-key.json
-      - gcloud auth activate-service-account --key-file /tmp/gcp-key.json
-      - gcloud config set project ${PROJECT_ID}
-      - gcloud auth configure-docker ${REGION}-docker.pkg.dev
-      - docker buildx build --platform linux/amd64 -t ${REGION}-docker.pkg.dev/${PROJECT_ID}/${REPO_NAME}/${SERVICE_NAME}:latest . --no-cache
-      - docker push ${REGION}-docker.pkg.dev/${PROJECT_ID}/${REPO_NAME}/${SERVICE_NAME}:latest
+      dockerfile: Dockerfile
+      context: .
+      platforms: linux/amd64
 
   deploy:
-    image: google/cloud-sdk:alpine
+    image: alpine:3.20
     environment:
-      "GCP_SERVICE_ACCOUNT_KEY":
+      GCP_SERVICE_ACCOUNT_KEY:
         from_secret: gcloud
-      "ENV_FILE_CONTENT":
+      ENV_FILE_CONTENT:
         from_secret: env_yaml
+      REGION: 
+        from_secret: region
+      PROJECT_ID:
+        from_secret: project_id
+      REPO_NAME: 
+        from_secret: repo_name
+      SERVICE_NAME: 
+        from_secret: service_name
     commands:
-      - echo "$GCP_SERVICE_ACCOUNT_KEY" | base64 -d > /tmp/gcp-key.json
-      - echo "🔑 Authenticating with GCP..."
-      - echo "$ENV_FILE_CONTENT" > .env.yaml
+      - apk add --no-cache curl bash python3 py3-pip
+      - curl -sSL https://sdk.cloud.google.com | bash
+      - export PATH="$HOME/google-cloud-sdk/bin:$PATH"
+      - echo "$${GCP_SERVICE_ACCOUNT_KEY}" > /tmp/gcp-key.json
+      - echo "$${ENV_FILE_CONTENT}" > .env.yaml
       - gcloud auth activate-service-account --key-file /tmp/gcp-key.json
-      - gcloud config set project ${PROJECT_ID}
-      - gcloud run deploy ${SERVICE_NAME}
-          --image ${REGION}-docker.pkg.dev/${PROJECT_ID}/${REPO_NAME}/${SERVICE_NAME}:latest
-          --region ${REGION}
-          --allow-unauthenticated
-          --env-vars-file .env.yaml
-          --memory 2Gi
-          --cpu 2
-          --project ${PROJECT_ID}
+      - gcloud config set project $${PROJECT_ID}
+      - echo "🚀 Deploying to Cloud Run..."
+      - gcloud run deploy $${SERVICE_NAME} --image $${REGION}-docker.pkg.dev/$${PROJECT_ID}/$${REPO_NAME}/$${SERVICE_NAME}:latest --region $${REGION} --allow-unauthenticated --env-vars-file .env.yaml --memory 2Gi --cpu 2 --project $${PROJECT_ID}
     depends_on:
       - build
