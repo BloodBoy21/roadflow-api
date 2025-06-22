@@ -23,7 +23,7 @@ class ChangelogRepository(MongoRepository[Changelog]):
         Returns:
             tuple: List of changelogs, total pages, and total count.
         """
-        query = {"organizationId": org_id}
+        query = {"organizationId": org_id, "show": True}
         return self.paginate(
             query=query, page=page, limit=limit, options={"sort": ("position", 1)}
         )
