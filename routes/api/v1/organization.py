@@ -10,8 +10,8 @@ from middleware.org_middleware import (
 )
 from models.input_webhook import InputWebhookCreate, InputWebhookRead
 from models.invitation import InvitationCreate, InvitationRead
-from models.response.api import Response, PaginateResponse
-from models.organization_user import OrganizationUserOut, OrganizationUserRead
+from models.organization_user import OrganizationUserOut
+from models.response.api import PaginateResponse, Response
 from models.user import UserRead
 from repository import repository
 from services.organization_service import accept_invite, send_invite_to_org

@@ -1,11 +1,12 @@
 # repository/sql_repository.py
 from typing import Any, TypeVar
 
+from loguru import logger
 from pydantic import BaseModel
 
 from lib.prisma import prisma
 from repository.base_repository import BaseRepository
-from loguru import logger
+
 T = TypeVar("T", bound=BaseModel)
 
 
