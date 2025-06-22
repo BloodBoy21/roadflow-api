@@ -32,7 +32,7 @@ async def create_workflow(
     try:
         last_node = None
         if head_node:
-            last_node = repository.mongo.workflow.get_last_node_id(
+            last_node: Workflow = repository.mongo.workflow.get_last_node_id(
                 workflow_id=head_node
             )
             if not last_node:
@@ -49,9 +49,9 @@ async def create_workflow(
                 "next_flow": None,
             }
         )
-        if head_node:
+        if last_node:
             repository.mongo.workflow.update_by_id(
-                id=head_node,
+                id=last_node.id,
                 data={"next_flow": workflow.id},
             )
         cache.delete(f"workflow_last_node_{head_node}")
@@ -76,7 +76,7 @@ async def create_workflow_task(
     try:
         last_node = None
         if head_node:
-            last_node = repository.mongo.workflow.get_last_node_id(
+            last_node: Workflow = repository.mongo.workflow.get_last_node_id(
                 workflow_id=head_node
             )
             if not last_node:
@@ -93,9 +93,9 @@ async def create_workflow_task(
                 "next_flow": None,
             }
         )
-        if head_node:
+        if last_node:
             repository.mongo.workflow.update_by_id(
-                id=head_node,
+                id=last_node.id,
                 data={"next_flow": workflow.id},
             )
         cache.delete(f"workflow_last_node_{head_node}")
