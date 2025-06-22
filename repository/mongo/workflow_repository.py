@@ -176,3 +176,26 @@ class WorkflowRepository(MongoRepository[Workflow]):
         if not workflows_ids:
             return
         self.delete_many({"_id": {"$in": workflows_ids}})
+
+    def get_with_task(
+        self,
+        workflow_id: str,
+    ) -> Workflow | None:
+        """Get a workflow by its ID, including its task."""
+        pipeline = [
+            {"$match": {"_id": ObjectId(workflow_id)}},
+            {
+                "$lookup": {
+                    "from": "tasks",
+                    "localField": "task_template_id",
+                    "foreignField": "_id",
+                    "as": "task",
+                }
+            },
+            {"$unwind": {"path": "$task", "preserveNullAndEmptyArrays": True}},
+        ]
+        raw_cursor = self.aggregate(pipeline)
+        doc = next(raw_cursor, None)
+        if doc:
+            return self.model(**doc)
+        return None

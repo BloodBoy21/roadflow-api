@@ -30,6 +30,10 @@ def run(
             )
         emails = emails.split(",") if isinstance(emails, str) else emails
         logger.info(f"Preparing to send email to: {emails}")
+        agent_response: dict = context.get("last_response", {})
+        task_data: dict = agent_response.get("next_task", {})
+        logger.info(f"Agent response: {agent_response}")
+        logger.info(f"Task data: {task_data}")
         for email in emails:
             if not email:
                 continue
@@ -38,8 +42,9 @@ def run(
             logger.info(f"Sending email to: {email}")
             result = send_email(
                 to=email,
-                subject=payload.get("subject", ""),
-                text=context.get("last_response", ""),
+                subject=payload.get("subject")
+                or task_data.get("subject", "No Subject"),
+                text=agent_response.get("result", ""),
             )
             logger.info(f"Emails sent successfully to: {email}: {result}")
         return TaskResponse(

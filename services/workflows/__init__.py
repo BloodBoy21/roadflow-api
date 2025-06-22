@@ -1,7 +1,6 @@
 import asyncio
 import json
-from typing import Dict, List, Optional
-
+from helpers.response_cleaner import clean_response
 from loguru import logger
 
 from models.mongo.logs import LogBase
@@ -95,6 +94,9 @@ class WorkflowService:
                 f"Agent {workflow.agent} not found for organization ID {workflow.organizationId}"
             )
             return
+        next_workflow: Workflow = repository.mongo.workflow.get_with_task(
+            workflow.next_flow
+        )
         prompt = f"""
         ## Workflow Execution Prompt
         You are an AI agent responsible for executing workflows based on the provided context and input data.
@@ -109,26 +111,51 @@ class WorkflowService:
         Input data to analyze and process:
         {json.dumps(payload, indent=2)}
 
+        ## Next Task Details
+        is task: {next_workflow.is_task if next_workflow else False}
+        Task schema details: {json.dumps(next_workflow.task.model_dump(), indent=2, default=str) if next_workflow.task else "No task"}
+        Task parameters: {json.dumps(next_workflow.parameters, indent=2, default=str) if next_workflow.parameters else "No parameters"}
+        
+        You should automatically fill the necessary parameters for the next task if it is a task and you have the required information to do so.
+        
+        ## Output Format
+        
+        The output should be a JSON object containing the result of the workflow execution.
+        
+        {{
+            "result": "The result of the workflow execution", # Required should be a valid JSON object or string, validate this checking the next_flow.is_task
+            "context": "Any additional context or information that should be returned",
+            "next_task" : DICT # Optional,task parameters, only if next_flow is a task should return the full schema of the task in format [parameter_name: parameter_value]
+        }}
+        
         """
 
         res = asyncio.run(agent_caller.generate(text=prompt))
+        try:
+            res = clean_response(res)
+            res = json.loads(res)
+            logger.debug(f"Workflow {workflow.id} response: {res}")
+        except json.JSONDecodeError:
+            logger.error(f"Failed to parse JSON response: {res}")
+            res = {
+                "error": "Invalid JSON response from agent",
+                "raw_response": res,
+            }
+
         logger.info(f"Workflow {workflow.id} executed successfully: {res}")
         repository.mongo.logs.create(
             LogBase(
                 agent=workflow.agent,
-                data=json.dumps(payload, indent=2) if isinstance(res, dict) else res,
+                data=json.dumps(res, indent=2),
                 organizationId=workflow.organizationId,
                 type="workflow",
                 source=source or "workflow_run",
                 source_id=ObjectId(source_log_id) if source_log_id else None,
             )
         )
-        if not res:
-            logger.error(f"Failed to run workflow: {workflow.id}")
-            return
+
         context["last_response"] = res
         if workflow.next_flow:
-            next_workflow = repository.mongo.workflow.find_by_id(workflow.next_flow)
             if not context.get("prev_workflow"):
                 context["prev_workflow"] = []
             context["prev_workflow"].append(
