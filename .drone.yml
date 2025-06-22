@@ -1,0 +1,77 @@
+kind: pipeline
+type: docker
+name: deploy-flow-api
+
+steps:
+  - name: setup-docker
+    image: docker
+    commands:
+      - docker buildx create --use
+      - docker buildx inspect --bootstrap
+
+  - name: build-image
+    image: docker
+    environment:
+      REGION: us-west1
+      PROJECT_ID: manifest-grin-462423-m3
+      REPO_NAME: hackaton
+      SERVICE_NAME: flow-api
+      LOCAL_IMAGE: bloodbloy/flow-api
+      REMOTE_IMAGE: us-west1-docker.pkg.dev/manifest-grin-462423-m3/hackaton/flow-api:latest
+    commands:
+      - echo "🔨 Building Docker image..."
+      - docker buildx build --platform linux/amd64 -t $LOCAL_IMAGE . --no-cache
+
+  - name: tag-and-push
+    image: docker
+    environment:
+      REGION: us-west1
+      PROJECT_ID: manifest-grin-462423-m3
+      REPO_NAME: hackaton
+      SERVICE_NAME: flow-api
+      LOCAL_IMAGE: bloodbloy/flow-api
+      REMOTE_IMAGE: us-west1-docker.pkg.dev/manifest-grin-462423-m3/hackaton/flow-api:latest
+    commands:
+      - echo "🏷️ Tagging and pushing image..."
+      - docker tag $LOCAL_IMAGE $REMOTE_IMAGE
+      - docker push $REMOTE_IMAGE
+
+  - name: write-env-file
+    image: alpine
+    environment:
+      ENV_FILE_CONTENT:
+        from_secret: cloudrun_env_yaml
+    commands:
+      - echo "$ENV_FILE_CONTENT" > .env.yaml
+
+  - name: deploy-cloud-run
+    image: google/cloud-sdk
+    environment:
+      PROJECT_ID: manifest-grin-462423-m3
+      REGION: us-west1
+      SERVICE_NAME: flow-api
+      REMOTE_IMAGE: us-west1-docker.pkg.dev/manifest-grin-462423-m3/hackaton/flow-api:latest
+      GCLOUD_SERVICE_KEY:
+        from_secret: gcloud_service_key
+    commands:
+      - echo "🔑 Authenticating with GCP..."
+      - echo "$GCLOUD_SERVICE_KEY" > /tmp/key.json
+      - gcloud auth activate-service-account --key-file=/tmp/key.json
+      - gcloud config set project $PROJECT_ID
+      - echo "🚀 Deploying to Cloud Run..."
+      - gcloud run deploy $SERVICE_NAME \
+          --image $REMOTE_IMAGE \
+          --region $REGION \
+          --allow-unauthenticated \
+          --env-vars-file .env.yaml \
+          --memory 2Gi \
+          --cpu 2 \
+          --project $PROJECT_ID
+
+
+
+trigger:
+  branch:
+    - main
+    - master
+
