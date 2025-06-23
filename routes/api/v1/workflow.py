@@ -208,6 +208,29 @@ async def update_workflow_node(
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e)) from e
 
+@workflow_router.get(
+    "/{org_id}/node/{node_id}",
+    response_model=Response[Workflow],
+)
+@validate_user_verified_middleware
+@validate_org_middleware
+@validate_workflow_middleware
+async def get_workflow_node(
+    org_id: int,
+    node_id: str,
+    user: UserRead = Depends(user_is_authenticated),
+):
+    try:
+        workflow: Workflow = repository.mongo.workflow.get_with_task(node_id)
+        if not workflow:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND, detail="Workflow node not found"
+            )
+        return {
+            "data": workflow,
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e)) from e
 
 @workflow_router.delete(
     "/{org_id}/node/{node_id}",
