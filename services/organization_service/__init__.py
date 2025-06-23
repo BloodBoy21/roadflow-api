@@ -92,7 +92,7 @@ async def accept_invite(token: str, user_id: int) -> OrganizationUserRead:
 
     # Check if the user is already a member of the organization
     existing_member: bool = await repository.sql.organization_user.user_in_organization(
-        user_id=user_id, org_id=invitation.organizationId
+        user_id=user_id, organization_id=invitation.organizationId
     )
     if existing_member:
         raise ValueError("User is already a member of this organization.")
@@ -101,7 +101,7 @@ async def accept_invite(token: str, user_id: int) -> OrganizationUserRead:
     org_user = await repository.sql.organization_user.create(
         OrganizationUserCreate(
             user_id=user_id,
-            org_id=invitation.organizationId,
+            organization_id=invitation.organizationId,
             role=invitation.role,
         )
     )
