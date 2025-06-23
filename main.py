@@ -84,6 +84,7 @@ async def signup(user: UserCreate):
     try:
         created_user = await user_service.create_user(user)
         token = create_token(user_id=created_user.id)
+        user_service.send_validation_email(user)
         return {
             "data": {
                 **created_user.model_dump(),
@@ -124,7 +125,6 @@ async def auth(user_data: OAuth2PasswordRequestForm = Depends()):
             },
         )
     token = create_token(user.id)
-    user_service.send_validation_email(user)
     return {"access_token": token, "token_type": "bearer"}
 
 
@@ -170,6 +170,7 @@ async def verify_email(token: str):
             "An unexpected error occurred during email verification.",
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
         )
+
 
 @app.post(
     "/login", response_model=Union[Response[AuthResponse], ErrorResponse], tags=["auth"]
