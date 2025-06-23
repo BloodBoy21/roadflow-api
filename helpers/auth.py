@@ -27,7 +27,7 @@ def create_token(user_id) -> str:
 
 def create_validation_token(user_id: str) -> str:
     return jwt.encode(
-        {"user_id": user_id, "exp": datetime.now() + timedelta(hours=1)},
+        {"user_id": user_id, "exp": datetime.now() + timedelta(days=EXP_TIME)},
         SECRET_EMAIL_KEY,
         algorithm="HS256",
     )

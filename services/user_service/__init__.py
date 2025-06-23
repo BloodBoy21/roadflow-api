@@ -7,6 +7,7 @@ from models.user import UserCreate, UserRead
 from repository import repository
 from services.email import send_email
 from templates.email.signup import signup_email
+from loguru import logger
 
 
 async def exists_user(email: str) -> bool:
@@ -31,7 +32,7 @@ async def create_user(user: UserCreate) -> UserRead:
         user_created.first_name, user_created.id
     )
     await add_user_to_org(user_id=user_created.id, org_id=organization.id)
-
+    logger.info(user_created)
     return user_created
 
 
@@ -71,7 +72,7 @@ def send_validation_email(user: UserRead) -> None:
         raise ValueError("Email already verified.")
     validation_token = create_validation_token(user.id)
     send_email(
-        html=signup_email(name=user.first_name, validation_token=validation_token),
+        html=signup_email(name=user.first_name, token=validation_token),
         subject="Welcome to RoadFlow",
         to=user.email,
     )

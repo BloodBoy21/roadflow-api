@@ -9,7 +9,7 @@ from fastapi.security import OAuth2PasswordRequestForm
 from fastapi_limiter import FastAPILimiter
 from loguru import logger
 
-from helpers.auth import create_token, decode_email_token
+from helpers.auth import create_token
 from helpers.error_handling import raise_server_error
 from lib.cache import get_cache
 from lib.mongo import client as mongo_client
@@ -17,7 +17,7 @@ from lib.prisma import prisma
 from models.inputs.api import UserLogin
 from models.response.api import ErrorResponse, Response
 from models.response.auth import AuthResponse
-from models.user import UserCreate, UserRead
+from models.user import UserCreate
 from routes.api import api_router
 from services import user_service
 
@@ -84,7 +84,7 @@ async def signup(user: UserCreate):
     try:
         created_user = await user_service.create_user(user)
         token = create_token(user_id=created_user.id)
-        user_service.send_validation_email(user)
+        user_service.send_validation_email(created_user)
         return {
             "data": {
                 **created_user.model_dump(),
@@ -102,7 +102,7 @@ async def signup(user: UserCreate):
         raise_server_error(
             e,
             "An unexpected error occurred during user signup.",
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR,
         )
 
 
@@ -128,48 +128,7 @@ async def auth(user_data: OAuth2PasswordRequestForm = Depends()):
     return {"access_token": token, "token_type": "bearer"}
 
 
-@app.get(
-    "/verify",
-    response_model=Union[Response[AuthResponse], ErrorResponse],
-    tags=["auth"],
-)
-async def verify_email(token: str):
-    """Endpoint to verify a user's email."""
-    try:
-        payload: dict = decode_email_token(token)
-        if not payload:
-            raise ValueError("Invalid or expired token")
-        user_id = payload.get("user_id")
-        if not user_id:
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Invalid or expired token",
-            )
-        user: UserRead = await user_service.verify_user_email(user_id)
-        if not user:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail="User not found",
-            )
-        return {
-            "data": {
-                **user.model_dump(),
-                "message": "Email verified successfully",
-            }
-        }
-    except ValueError as e:
-        logger.error(f"Error verifying email: {e}")
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail=str(e),
-        ) from e
-    except Exception as e:
-        logger.exception("Unexpected error during email verification")
-        raise_server_error(
-            e,
-            "An unexpected error occurred during email verification.",
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-        )
+
 
 
 @app.post(
@@ -200,7 +159,7 @@ async def login(user: UserLogin):
         raise_server_error(
             e,
             "An unexpected error occurred during user login.",
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR,
         )
 
 

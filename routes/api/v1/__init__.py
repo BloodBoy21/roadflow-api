@@ -23,3 +23,4 @@ v1_router.include_router(changelog_router, prefix="/changelog", tags=["changelog
 @v1_router.get("/")
 async def root():
     return {"message": "Welcome to the API v1!"}
+
