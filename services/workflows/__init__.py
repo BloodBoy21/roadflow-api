@@ -114,8 +114,8 @@ class WorkflowService:
 
         ## Next Task Details
         is task: {next_workflow.is_task if next_workflow else False}
-        Task schema details: {json.dumps(next_workflow.task.model_dump(), indent=2, default=str) if next_workflow.task else "No task"}
-        Task parameters: {json.dumps(next_workflow.parameters, indent=2, default=str) if next_workflow.parameters else "No parameters"}
+        Task schema details: {json.dumps(next_workflow.task.model_dump(), indent=2, default=str) if next_workflow is not None and next_workflow.task else "No task"}
+        Task parameters: {json.dumps(next_workflow.parameters, indent=2, default=str) if next_workflow is not None and next_workflow.parameters else "No parameters"}
         
         You should automatically fill the necessary parameters for the next task if it is a task and you have the required information to do so.
         
