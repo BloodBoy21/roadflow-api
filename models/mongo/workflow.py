@@ -44,7 +44,15 @@ class CreateWorkflowTask(BaseModel):
     parameters: dict | None = {}
     task_template_id: ObjectId
 
+class UpdateWorkflow(BaseModel):
+    prompt: str | None = None
+    agent: str | None = None
+    events: list[EventType] | None = None
 
+
+class UpdateWorkflowTask(BaseModel):
+    parameters: dict | None = {}
+    task_template_id: ObjectId | None = None
 class Workflow(MongoModel, WorkflowBase, WorkflowTaskBase, FlowBase):
     _collection_name = "workflows"
     task: Task | None = None

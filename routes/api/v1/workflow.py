@@ -11,7 +11,13 @@ from middleware.org_middleware import (
 )
 from middleware.workflow_middleware import validate_workflow_middleware
 from models.mongo.task import TaskCreate, TaskOutput
-from models.mongo.workflow import CreateWorkFlow, CreateWorkflowTask, Workflow
+from models.mongo.workflow import (
+    CreateWorkFlow,
+    CreateWorkflowTask,
+    Workflow,
+    UpdateWorkflowTask,
+    UpdateWorkflow,
+)
 from models.response.api import Response
 from models.user import UserRead
 from repository import repository
@@ -197,7 +203,7 @@ async def get_workflow_nodes(
 async def update_workflow_node(
     org_id: int,
     node_id: str,
-    data: CreateWorkflowTask | CreateWorkFlow,
+    data: UpdateWorkflow | UpdateWorkflowTask,
     user: UserRead = Depends(user_is_authenticated),
 ):
     try:
