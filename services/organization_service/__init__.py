@@ -12,6 +12,12 @@ from models.organization_user import (
 from repository import repository
 from services.email import send_email
 from templates.email.join_org import join_to_org_email
+from datetime import datetime, timedelta
+from zoneinfo import ZoneInfo
+
+
+TZ = os.getenv("TZ", "America/Mexico_City")
+tz_zone = ZoneInfo(TZ)
 
 INVITE_SECRET = os.getenv("INVITE_SECRET")
 
@@ -48,7 +54,7 @@ async def send_invite_to_org(
         # Send the invitation email
         send_email(
             html=join_to_org_email(
-                organization_name=org.name,
+                organization_name=org.name.capitalize(),
                 token=token,
             ),
             subject="Invitation to join RoadFlow Organization",
@@ -60,6 +66,7 @@ def create_invite_token(invitation: InvitationRead) -> str:
     """Create a JWT token for inviting a user to an organization."""
     payload = {
         "invitation_id": invitation.id,
+        "exp": datetime.now(tz=tz_zone) + timedelta(days=7),  # Token valid for 7 days
     }
     token = jwt.encode(payload, INVITE_SECRET, algorithm="HS256")
     return token
@@ -110,3 +117,31 @@ async def accept_invite(token: str, user_id: int) -> OrganizationUserRead:
     await repository.sql.invitation.delete({"id": invitation.id})
 
     return org_user
+
+
+async def resend_invite_to_org(invitation_id: int) -> InvitationRead:
+    """Resend an invitation to a user."""
+    invitation: InvitationRead = await repository.sql.invitation.find_by_id(
+        invitation_id,
+        options={"include": {"organization": True}},
+    )
+    if not invitation:
+        raise ValueError(f"Invitation with ID {invitation_id} does not exist.")
+
+    # Create a JWT token for the invitation
+    token = create_invite_token(invitation)
+    await repository.sql.invitation.update(
+        {"id": invitation.id},
+        {"expiresAt": datetime.now(tz=tz_zone) + timedelta(days=7)},
+    )
+    # Send the invitation email again
+    send_email(
+        html=join_to_org_email(
+            organization_name=invitation.organization.name.capitalize(),
+            token=token,
+        ),
+        subject="Invitation to join RoadFlow Organization",
+        to=invitation.email,
+    )
+
+    return invitation

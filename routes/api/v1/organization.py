@@ -14,7 +14,11 @@ from models.organization_user import OrganizationUserOut
 from models.response.api import PaginateResponse, Response
 from models.user import UserRead
 from repository import repository
-from services.organization_service import accept_invite, send_invite_to_org
+from services.organization_service import (
+    accept_invite,
+    send_invite_to_org,
+    resend_invite_to_org,
+)
 
 organization_router = APIRouter()
 
@@ -126,6 +130,59 @@ async def validate_invite_token(
     except Exception as e:
         logger.error(e)
         raise HTTPException(status_code=400, detail=str(e)) from e
+
+@organization_router.post(
+    "/{org_id}/invites/{invite_id}/resend", status_code=status.HTTP_200_OK
+)
+@validate_user_verified_middleware
+@validate_org_middleware
+async def resend_invite(
+    org_id: int,
+    invite_id: int,
+    user: UserRead = Depends(user_is_authenticated),
+):
+    try:
+        invite: InvitationRead = await repository.sql.invitation.find_by_id(invite_id)
+        if not invite:
+            raise HTTPException(status_code=404, detail="Invitation not found")
+        if invite.organizationId != org_id:
+            raise HTTPException(
+                status_code=403,
+                detail="You do not have permission to resend this invitation",
+            )
+        # Resend the invitation email
+        await resend_invite_to_org(invite_id)
+    except Exception as e:
+        logger.error(e)
+        raise HTTPException(status_code=500, detail=str(e)) from e
+
+
+@organization_router.delete(
+    "/{org_id}/invites/{invite_id}", status_code=status.HTTP_204_NO_CONTENT
+)
+@validate_user_verified_middleware
+@validate_org_middleware
+async def delete_invite(
+    org_id: int,
+    invite_id: int,
+    user: UserRead = Depends(user_is_authenticated),
+):
+    try:
+        invite: InvitationRead = await repository.sql.invitation.find_by_id(invite_id)
+        if not invite:
+            raise HTTPException(status_code=404, detail="Invitation not found")
+        if invite.organizationId != org_id:
+            raise HTTPException(
+                status_code=403,
+                detail="You do not have permission to delete this invitation",
+            )
+        # Delete the invitation
+        await repository.sql.invitation.delete_by_id(invite_id)
+        return {"detail": "Invitation deleted successfully"}
+    except Exception as e:
+        logger.error(e)
+        raise HTTPException(status_code=500, detail=str(e)) from e
+
 
 @organization_router.get(
     "/{org_id}/invites",
