@@ -10,12 +10,14 @@ class OrganizationUserRepository(SQLRepository[OrganizationUserRead]):
         super().__init__(model=OrganizationUserRead, collection="OrganizationUser")
 
     async def add_user(
-        self, user_id: int, organization_id: int
+        self, user_id: int, organization_id: int, role: str = "member"
     ) -> OrganizationUserRead:
         """Add a user to an organization."""
         if await self.exists(userId=user_id, organizationId=organization_id):
             raise ValueError("User already exists in the organization.")
-        return await self.create({"userId": user_id, "organizationId": organization_id})
+        return await self.create(
+            {"userId": user_id, "organizationId": organization_id, "role": role}
+        )
 
     async def get_organizations_by_user_id(
         self, user_id: int

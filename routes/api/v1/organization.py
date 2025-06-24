@@ -8,6 +8,7 @@ from middleware.org_middleware import (
     validate_org_middleware,
     validate_user_verified_middleware,
 )
+from middleware.role_middleware import user_has_permission
 from models.input_webhook import InputWebhookCreate, InputWebhookRead
 from models.invitation import InvitationCreate, InvitationRead
 from models.organization_user import OrganizationUserOut
@@ -19,6 +20,7 @@ from services.organization_service import (
     resend_invite_to_org,
     send_invite_to_org,
 )
+from shared.roles import RoleEnum
 
 organization_router = APIRouter()
 
@@ -101,6 +103,7 @@ async def get_webhook_inputs(
 )
 @validate_user_verified_middleware
 @validate_org_middleware
+@user_has_permission(allowed_roles=[RoleEnum.ADMIN.value, RoleEnum.OWNER.value])
 async def invite_user_to_organization(
     org_id: int,
     data: list[InvitationCreate],
@@ -136,6 +139,7 @@ async def validate_invite_token(
 )
 @validate_user_verified_middleware
 @validate_org_middleware
+@user_has_permission(allowed_roles=[RoleEnum.ADMIN.value, RoleEnum.OWNER.value])
 async def resend_invite(
     org_id: int,
     invite_id: int,
@@ -162,6 +166,7 @@ async def resend_invite(
 )
 @validate_user_verified_middleware
 @validate_org_middleware
+@user_has_permission(allowed_roles=[RoleEnum.ADMIN.value, RoleEnum.OWNER.value])
 async def delete_invite(
     org_id: int,
     invite_id: int,

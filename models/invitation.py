@@ -1,15 +1,10 @@
 from datetime import datetime
-from enum import Enum
 
 from pydantic import BaseModel
 
+from shared.roles import RoleEnum
+
 from .organization import OrganizationRead
-
-
-class RoleEnum(str, Enum):
-    ADMIN = "admin"
-    MEMBER = "member"
-    OWNER = "owner"
 
 
 class InvitationBase(BaseModel):

@@ -7,6 +7,7 @@ from models.organization import OrganizationCreate, OrganizationRead
 from models.user import UserCreate, UserRead
 from repository import repository
 from services.email import send_email
+from shared.roles import RoleEnum
 from templates.email.signup import signup_email
 
 
@@ -31,7 +32,9 @@ async def create_user(user: UserCreate) -> UserRead:
     organization = await create_user_org_default(
         user_created.first_name, user_created.id
     )
-    await add_user_to_org(user_id=user_created.id, org_id=organization.id)
+    await add_user_to_org(
+        user_id=user_created.id, org_id=organization.id, role=RoleEnum.OWNER.value
+    )
     logger.info(user_created)
     return user_created
 
@@ -44,10 +47,12 @@ async def create_user_org_default(user_name: str, user_id: int) -> OrganizationR
     return await repository.sql.organization.create(data=organization.model_dump())
 
 
-async def add_user_to_org(user_id: int, org_id: int) -> OrganizationRead:
+async def add_user_to_org(
+    user_id: int, org_id: int, role: str = "member"
+) -> OrganizationRead:
     """Add user to organization."""
     return await repository.sql.organization_user.add_user(
-        user_id=user_id, organization_id=org_id
+        user_id=user_id, organization_id=org_id, role=role
     )
 
 
