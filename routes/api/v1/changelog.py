@@ -1,4 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException, status
+from loguru import logger
 
 from helpers.auth import user_is_authenticated
 from middleware.org_middleware import (
@@ -9,7 +10,6 @@ from models.mongo.changelog import Changelog
 from models.response.api import PaginateResponse
 from models.user import UserRead
 from repository import repository
-from loguru import logger
 
 changelog_router = APIRouter()
 

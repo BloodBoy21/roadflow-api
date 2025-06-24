@@ -1,4 +1,5 @@
 import bcrypt
+from loguru import logger
 
 from helpers.auth import create_validation_token
 from models.inputs.api import UserLogin
@@ -7,7 +8,6 @@ from models.user import UserCreate, UserRead
 from repository import repository
 from services.email import send_email
 from templates.email.signup import signup_email
-from loguru import logger
 
 
 async def exists_user(email: str) -> bool:

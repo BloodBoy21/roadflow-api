@@ -1,15 +1,17 @@
+from typing import Union
+
 from fastapi import APIRouter, Depends, HTTPException, status
 from loguru import logger
 
 import services.user_service as user_service
 import services.user_service.organization as user_org_service
-from helpers.auth import user_is_authenticated, decode_email_token
-from models.organization_user import OrganizationUserRead
-from models.user import UserRead
+from helpers.auth import decode_email_token, user_is_authenticated
 from helpers.error_handling import raise_server_error
-from typing import Union
-from models.response.auth import AuthResponse
+from models.organization_user import OrganizationUserRead
 from models.response.api import ErrorResponse, Response
+from models.response.auth import AuthResponse
+from models.user import UserRead
+
 user_router = APIRouter()
 
 
