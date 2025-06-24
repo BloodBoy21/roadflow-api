@@ -35,3 +35,12 @@ class OrganizationUserRepository(SQLRepository[OrganizationUserRead]):
         return await self.paginate(
             query, page=page, limit=limit, options={"include": {"user": True}}
         )
+
+    async def get_user_by_id_and_organization_id(
+        self, user_id: int, organization_id: int
+    ) -> OrganizationUserRead | None:
+        """Get a user by user ID and organization ID."""
+        return await self.find_one(
+            {"userId": user_id, "organizationId": organization_id},
+            {"include": {"user": True}},
+        )

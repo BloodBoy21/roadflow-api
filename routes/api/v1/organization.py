@@ -16,8 +16,8 @@ from models.user import UserRead
 from repository import repository
 from services.organization_service import (
     accept_invite,
-    send_invite_to_org,
     resend_invite_to_org,
+    send_invite_to_org,
 )
 
 organization_router = APIRouter()

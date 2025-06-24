@@ -1,4 +1,6 @@
 import os
+from datetime import datetime, timedelta
+from zoneinfo import ZoneInfo
 
 import jwt
 from loguru import logger
@@ -12,9 +14,6 @@ from models.organization_user import (
 from repository import repository
 from services.email import send_email
 from templates.email.join_org import join_to_org_email
-from datetime import datetime, timedelta
-from zoneinfo import ZoneInfo
-
 
 TZ = os.getenv("TZ", "America/Mexico_City")
 tz_zone = ZoneInfo(TZ)
