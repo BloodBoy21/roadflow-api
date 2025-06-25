@@ -11,6 +11,7 @@ from middleware.org_middleware import (
 from middleware.role_middleware import user_has_permission
 from models.input_webhook import InputWebhookCreate, InputWebhookRead
 from models.invitation import InvitationCreate, InvitationRead
+from models.mongo.logs import LogOutput
 from models.organization_user import OrganizationUserOut
 from models.response.api import PaginateResponse, Response
 from models.user import UserRead
@@ -255,5 +256,44 @@ async def get_organization_members(
             "total": total,
         }
     except Exception as e:
+        logger.error(e)
+        raise HTTPException(status_code=500, detail=str(e)) from e
+
+@organization_router.get(
+    "/{org_id}/logs",
+    response_model=PaginateResponse[LogOutput],
+)
+@validate_user_verified_middleware
+@validate_org_middleware
+async def get_organization_logs(
+    org_id: int,
+    limit: int = 20,
+    page: int = 1,
+    user: UserRead = Depends(user_is_authenticated),
+):
+    try:
+        logs, pages, total = repository.mongo.logs.get_by_organization_id(
+            organization_id=org_id, page=page, limit=limit
+        )
+        logs = [
+            LogOutput(
+                id=str(log["_id"]),
+                agent=log["agent"],
+                type=log["type"],
+                data=log["data"],
+                source=log["source"],
+                source_event=log["source_event"],
+                createdAt=log["createdAt"],
+                updatedAt=log["updatedAt"],
+            )
+            for log in logs
+        ]
+        return {
+            "data": logs,
+            "pages": pages,
+            "total": total,
+        }
+    except Exception as e:
+        logger.exception(e)
         logger.error(e)
         raise HTTPException(status_code=500, detail=str(e)) from e
