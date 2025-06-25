@@ -22,6 +22,7 @@ from services.organization_service import (
     send_invite_to_org,
 )
 from shared.roles import RoleEnum
+import json
 
 organization_router = APIRouter()
 
@@ -282,7 +283,11 @@ async def get_organization_logs(
                 type=log["type"],
                 data=log["data"],
                 source=log["source"],
-                source_event=log["source_event"],
+                source_event=json.loads(
+                    json.dumps(log.get("source_event", [])[0], default=str)
+                )
+                if log.get("source_event")
+                else None,
                 createdAt=log["createdAt"],
                 updatedAt=log["updatedAt"],
             )
